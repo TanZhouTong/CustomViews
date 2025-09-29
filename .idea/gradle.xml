@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/CustomPopupWindow" />
             <option value="$PROJECT_DIR$/CustomToolbar" />
             <option value="$PROJECT_DIR$/GlobalViewUtils" />
+            <option value="$PROJECT_DIR$/PageView" />
             <option value="$PROJECT_DIR$/app" />
           </set>
         </option>
