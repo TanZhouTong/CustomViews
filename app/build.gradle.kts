@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(project(path = ":CustomToolbar"))
     implementation(project(path = ":CustomPopupWindow"))
+    implementation(project(path = ":PageView"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

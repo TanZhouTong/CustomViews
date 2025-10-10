@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="http://schemas.android.com/tools">
+    <dimen name="font_size_page_indecator">15sp</dimen>
+    <dimen name="padding_40">40dp</dimen>
+    <dimen name="padding_8">8dp</dimen>
+    <declare-styleable name="PageGridStyleable" ns1:ignore="ResourceName">
+        <attr format="integer" name="rowCount"/>
+        <attr format="integer" name="columnCount"/>
+        <attr format="boolean" name="looper"/>
+    </declare-styleable>
+
+    <declare-styleable name="ZYInkBasePagerIndicator" ns1:ignore="ResourceName">
+        <attr format="boolean" name="showIndicatorButton"/>
+        <attr format="dimension" name="indicatorButtonPadding"/>
+        <attr format="reference" name="previousDrawable"/>
+        <attr format="reference" name="nextDrawable"/>
+        <attr format="boolean" name="showWhenOnePage"/>
+    </declare-styleable>
+
+    <declare-styleable name="ZYInkTextPagerIndicator" ns1:ignore="ResourceName">
+        <attr format="reference" name="indicatorLayout"/>
+    </declare-styleable>
+</resources>

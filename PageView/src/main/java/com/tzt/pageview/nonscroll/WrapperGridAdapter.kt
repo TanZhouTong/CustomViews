@@ -1,0 +1,136 @@
+package com.tzt.pageview.nonscroll
+
+//import com.tzt.pageview.nonscroll.WrapperGridAdapter.PageGridItemAdapter.GridViewHold
+import android.content.Context
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.GridView
+import androidx.recyclerview.widget.RecyclerView
+import com.tzt.pageview.R
+import com.tzt.pageview.nonscroll.WrapperGridAdapter.GridViewHold
+
+/**
+ * @Description
+ * @Author tanzhoutong
+ * @Date 2025/10/10 11:05
+ * grid布局时的adapter
+ */
+class WrapperGridAdapter(
+    val context: Context,
+    val gridAdapter: GridItemAdapter<*>,
+    val data: List<*>,
+    val itemsCountInPage: Int,
+    val columns: Int,
+) : RecyclerView.Adapter<GridViewHold>() {
+    companion object {
+        const val TAG = "WrapperGridAdapter"
+    }
+
+    inner class GridViewHold(view: View) : RecyclerView.ViewHolder(view) {
+
+        val gridView: GridView = view.findViewById(R.id.grid_item_container)
+
+        init {
+            Log.d(TAG, "GridViewHold init()")
+            gridView.numColumns = columns
+            gridView.stretchMode = GridView.STRETCH_SPACING
+            gridView.adapter = gridAdapter
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GridViewHold {
+        Log.d(TAG, "onCreateViewHolder()")
+        return GridViewHold(
+            LayoutInflater.from(context).inflate(R.layout.layout_grid_item, parent, false)
+        )
+    }
+
+    override fun onBindViewHolder(holder: GridViewHold, position: Int) {
+        Log.d(TAG, "onBindViewHolder()")
+        // pass， or refresh the data
+        // 根据position,喂对应的数据
+        val adapter = holder.gridView.adapter as GridItemAdapter<*>
+        adapter.submitData(getCurrentPageData(position))
+    }
+
+    /**
+     * 这里返回的就是GridView的个数了
+     * */
+    override fun getItemCount(): Int {
+        val total = gridAdapter.count
+        if (total == 0) return 0
+        val count = total / itemsCountInPage + if (total % itemsCountInPage == 0) 0 else 1
+        Log.d(TAG, "getItemCount is -> $count")
+        return count
+    }
+
+    private fun getCurrentPageData(currentPage: Int): List<*> {
+        val from = currentPage * itemsCountInPage
+        val nextPageFirst = (currentPage + 1) * itemsCountInPage
+        val to = if (nextPageFirst < data.size) nextPageFirst else data.size
+        return data.subList(from, to)
+    }
+
+    /*inner class PageGridItemAdapter(val gridAdapter: BaseAdapter) : RecyclerView.Adapter<GridViewHold>() {
+
+        inner class GridViewHold(view: View): RecyclerView.ViewHolder(view) {
+            val gridView: GridView = view.findViewById(R.id.grid_item_container)
+
+            init {
+                gridView.numColumns = columns
+                gridView.adapter = gridAdapter
+            }
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GridViewHold {
+            return GridViewHold(LayoutInflater.from(context).inflate(R.layout.layout_grid_item, parent, false))
+        }
+
+        override fun onBindViewHolder(holder: GridViewHold, position: Int) {
+            TODO("Not yet implemented")
+        }
+
+        override fun getItemCount(): Int {
+            val total = gridAdapter.count
+            return total / itemsCountInPage + if (total % itemsCountInPage == 0) 0 else 1
+        }
+
+        val mObserver by lazy {
+            object : RecyclerView.AdapterDataObserver() {
+                override fun onChanged() {
+                    notifyDataSetChanged()
+                }
+
+                override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+                    if (_adapter.itemCount + itemCount > this@PageGridItemAdapter.itemCount) {
+                        notifyDataSetChanged()
+                    } else {
+                        notifyItemRangeRemoved(positionStart, itemCount)
+                    }
+                }
+
+                override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+                    notifyItemMoved(fromPosition, toPosition)
+                }
+
+                override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                    if (positionStart + itemCount < this@PageGridItemAdapter.itemCount) {
+                        notifyItemRangeChanged(positionStart, itemCount)
+                    } else {
+                        notifyDataSetChanged()
+                    }
+                }
+
+                override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
+                    notifyItemRangeChanged(positionStart, itemCount)
+                }
+
+                override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) {
+                    notifyItemRangeChanged(positionStart, itemCount, payload)
+                }
+            }
+        }
+    }*/
+}

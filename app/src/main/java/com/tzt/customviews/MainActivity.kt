@@ -1,9 +1,11 @@
 package com.tzt.customviews
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.View.OnClickListener
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -21,6 +23,8 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     lateinit var languageSwapImage: ImageView
     lateinit var languageToTextView: TextView
     lateinit var translateButton: TextView
+    lateinit var toGrid: Button
+    lateinit var toLinear: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +50,8 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         languageSwapImage = findViewById(com.tzt.customtoolbar.R.id.language_replace)
         languageToTextView = findViewById(com.tzt.customtoolbar.R.id.language_to)
         translateButton = findViewById(com.tzt.customtoolbar.R.id.translate_bt)
+        toGrid = findViewById(R.id.bt_to_grid)
+        toLinear = findViewById(R.id.bt_to_linear)
     }
 
     private fun setClickListener() {
@@ -55,6 +61,8 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         languageSwapImage.setOnClickListener(this)
         languageToTextView.setOnClickListener(this)
         translateButton.setOnClickListener(this)
+        toGrid.setOnClickListener(this)
+        toLinear.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
@@ -63,6 +71,8 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             com.tzt.customtoolbar.R.id.language_from, com.tzt.customtoolbar.R.id.language_to -> showPopupWindow(v)
             com.tzt.customtoolbar.R.id.language_replace -> swapLanguage()
             com.tzt.customtoolbar.R.id.translate_bt -> doTranslate()
+            R.id.bt_to_grid -> toGrid()
+            R.id.bt_to_linear -> toLinear()
         }
     }
 
@@ -99,6 +109,15 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     private fun doTranslate() {
         Log.d(TAG, "doTranslate execute...")
+    }
+
+    private fun toGrid() {
+        val intent = Intent(this, PageViewActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun toLinear() {
+        Log.d(TAG, "toLinear TODO")
     }
 
     companion object {
