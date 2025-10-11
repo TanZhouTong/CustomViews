@@ -30,13 +30,11 @@ class WrapperGridAdapter(
 
     inner class GridViewHold(view: View) : RecyclerView.ViewHolder(view) {
 
-        val gridView: GridView = view.findViewById(R.id.grid_item_container)
-
-        init {
+        val gridView: GridView = view.findViewById<GridView>(R.id.grid_item_container).apply {
             Log.d(TAG, "GridViewHold init()")
-            gridView.numColumns = columns
-            gridView.stretchMode = GridView.STRETCH_SPACING
-            gridView.adapter = gridAdapter
+            numColumns = columns
+            stretchMode = GridView.STRETCH_SPACING
+            adapter = gridAdapter
         }
     }
 
@@ -53,84 +51,29 @@ class WrapperGridAdapter(
         // 根据position,喂对应的数据
         val adapter = holder.gridView.adapter as GridItemAdapter<*>
         adapter.submitData(getCurrentPageData(position))
+        holder.gridView.invalidate()
     }
 
     /**
      * 这里返回的就是GridView的个数了
      * */
     override fun getItemCount(): Int {
-        val total = gridAdapter.count
-        if (total == 0) return 0
+        val total = data.size
+        if (total == 0) {
+            Log.d(TAG, "getItemCount is -> 0")
+            return 0
+        }
         val count = total / itemsCountInPage + if (total % itemsCountInPage == 0) 0 else 1
         Log.d(TAG, "getItemCount is -> $count")
         return count
     }
 
     private fun getCurrentPageData(currentPage: Int): List<*> {
+        Log.d(TAG, "getCurrentPageData currentPage:$currentPage")
         val from = currentPage * itemsCountInPage
         val nextPageFirst = (currentPage + 1) * itemsCountInPage
-        val to = if (nextPageFirst < data.size) nextPageFirst else data.size
+        val to = if (nextPageFirst < data.size - 1) nextPageFirst else data.size
+        Log.d(TAG, "getCurrentPageData : from:$from -> to:$to")
         return data.subList(from, to)
     }
-
-    /*inner class PageGridItemAdapter(val gridAdapter: BaseAdapter) : RecyclerView.Adapter<GridViewHold>() {
-
-        inner class GridViewHold(view: View): RecyclerView.ViewHolder(view) {
-            val gridView: GridView = view.findViewById(R.id.grid_item_container)
-
-            init {
-                gridView.numColumns = columns
-                gridView.adapter = gridAdapter
-            }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GridViewHold {
-            return GridViewHold(LayoutInflater.from(context).inflate(R.layout.layout_grid_item, parent, false))
-        }
-
-        override fun onBindViewHolder(holder: GridViewHold, position: Int) {
-            TODO("Not yet implemented")
-        }
-
-        override fun getItemCount(): Int {
-            val total = gridAdapter.count
-            return total / itemsCountInPage + if (total % itemsCountInPage == 0) 0 else 1
-        }
-
-        val mObserver by lazy {
-            object : RecyclerView.AdapterDataObserver() {
-                override fun onChanged() {
-                    notifyDataSetChanged()
-                }
-
-                override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
-                    if (_adapter.itemCount + itemCount > this@PageGridItemAdapter.itemCount) {
-                        notifyDataSetChanged()
-                    } else {
-                        notifyItemRangeRemoved(positionStart, itemCount)
-                    }
-                }
-
-                override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
-                    notifyItemMoved(fromPosition, toPosition)
-                }
-
-                override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
-                    if (positionStart + itemCount < this@PageGridItemAdapter.itemCount) {
-                        notifyItemRangeChanged(positionStart, itemCount)
-                    } else {
-                        notifyDataSetChanged()
-                    }
-                }
-
-                override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
-                    notifyItemRangeChanged(positionStart, itemCount)
-                }
-
-                override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) {
-                    notifyItemRangeChanged(positionStart, itemCount, payload)
-                }
-            }
-        }
-    }*/
 }

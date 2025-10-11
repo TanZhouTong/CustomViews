@@ -98,6 +98,7 @@ class PageRecyclerView @JvmOverloads constructor(
         if (lm == null) throw Utils.layoutManagerError()
         this.adapter?.unregisterAdapterDataObserver(mObserver)
         WrapperGridAdapter(context, gridAdapter, data, lm.itemsInPage, lm.columns).apply {
+            Log.d(TAG, "setGridAdapter() Start")
             registerAdapterDataObserver(mObserver)
             super.setAdapter(this)
         }
@@ -107,6 +108,7 @@ class PageRecyclerView @JvmOverloads constructor(
 
     override fun getAdapter(): Adapter<*>? {
         val adapter = super.getAdapter()
+        Log.d(TAG, "getAdapter -> $adapter")
         return if (adapter is WrapperLinearAdapter<*>) adapter.adapter
         /*else if(adapter is WrapperGridAdapter) adapter*/
         else adapter    // 这里包括了WrapperGridAdapter
@@ -133,16 +135,15 @@ class PageRecyclerView @JvmOverloads constructor(
      * */
     fun getFirstPositionInPage(page: Int): Int {
         // TODO:根据grid或者linear模式区分
-
-        val lm = layoutManager as? PagerModel
-            ?: throw Utils.layoutManagerError()
-        val itemsInPage = lm.itemsInPage
-        return page * itemsInPage
-        /*val adapter = super.getAdapter()
-        if (adapter is WrapperLinearAdapter<*>) {
-
+        val adapter = super.getAdapter()
+        if (adapter is WrapperGridAdapter) {
+            return page
+        } else {
+            val lm = layoutManager as? PagerModel
+                ?: throw Utils.layoutManagerError()
+            val itemsInPage = lm.itemsInPage
+            return page * itemsInPage
         }
-        return page*/
     }
 
     /**

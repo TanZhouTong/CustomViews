@@ -15,7 +15,7 @@ import com.tzt.pageview.nonscroll.GridItemAdapter
  * @Author tanzhoutong
  * @Date 2025/10/10 17:05
  */
-class MyGridAdapter(val context: Context): GridItemAdapter<ItemData>() {
+class MyGridAdapter(val context: Context) : GridItemAdapter<ItemData>() {
 
     override fun viewBind(
         position: Int,
@@ -24,16 +24,16 @@ class MyGridAdapter(val context: Context): GridItemAdapter<ItemData>() {
     ): View {
         val holder: ViewHolder
         val view: View
-        if (convertView == null) {
-            view = LayoutInflater.from(context).inflate(R.layout.gridview_item, parent, false)
-            holder = ViewHolder()
-            holder.imageView = view.findViewById(R.id.iv_icon)
-            holder.textView = view.findViewById(R.id.tv_name)
-            view.tag = holder
-        } else {
+        //if (convertView == null) {
+        view = LayoutInflater.from(context).inflate(R.layout.gridview_item, parent, false)
+        holder = ViewHolder()
+        holder.imageView = view.findViewById(R.id.iv_icon)
+        holder.textView = view.findViewById(R.id.tv_name)
+        //view.tag = holder
+        /*} else {
             view = convertView
             holder = convertView.tag as ViewHolder
-        }
+        }*/
 
         // 设置数据
         val item: ItemData = data[position]

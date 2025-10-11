@@ -16,7 +16,7 @@ abstract class GridItemAdapter<T>() : BaseAdapter() {
         const val TAG = "GridItemAdapter"
     }
 
-    protected var data: MutableList<T> = mutableListOf()
+    protected val data: MutableList<T> = mutableListOf()
     override fun getCount(): Int {
         return data.size
     }
