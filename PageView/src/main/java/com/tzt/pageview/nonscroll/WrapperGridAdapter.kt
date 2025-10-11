@@ -3,6 +3,7 @@ package com.tzt.pageview.nonscroll
 //import com.tzt.pageview.nonscroll.WrapperGridAdapter.PageGridItemAdapter.GridViewHold
 import android.content.Context
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,6 +34,7 @@ class WrapperGridAdapter(
         val gridView: GridView = view.findViewById<GridView>(R.id.grid_item_container).apply {
             Log.d(TAG, "GridViewHold init()")
             numColumns = columns
+            gravity = Gravity.CENTER
             stretchMode = GridView.STRETCH_SPACING
             adapter = gridAdapter
         }
