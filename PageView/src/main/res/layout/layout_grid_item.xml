@@ -9,6 +9,6 @@
         android:layout_width="match_parent"
         android:verticalSpacing="5dp"
         android:layout_height="match_parent"
-        android:columnWidth="120dp" />
+        android:columnWidth="60dp" />
 
 </LinearLayout>

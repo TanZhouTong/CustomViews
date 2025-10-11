@@ -39,7 +39,8 @@ class MyGridAdapter(val context: Context) : GridItemAdapter<ItemData>() {
         val item: ItemData = data[position]
         holder.imageView?.setImageDrawable(context.getDrawable(R.drawable.icon_shelf_show_mode_16))
         holder.textView?.text = item.name
-        Log.d(TAG, "viewBind is $view")
+        Log.d(TAG, "viewBind [view] is $view")
+        Log.d(TAG, "viewBind [data] is ${item.name}")
         return view
     }
 

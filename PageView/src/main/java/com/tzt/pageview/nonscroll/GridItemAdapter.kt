@@ -38,7 +38,7 @@ abstract class GridItemAdapter<T>() : BaseAdapter() {
     }
 
     fun submitData(data: List<*>) {
-        Log.d(TAG, "submitData size -> ${data.size}")
+        Log.d(TAG, "submitData size:${data.size}-> data:${data[0]}")
         this.data.clear()
         this.data.addAll(data as List<T>)
         notifyDataSetChanged()

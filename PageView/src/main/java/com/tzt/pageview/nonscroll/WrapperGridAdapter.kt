@@ -48,12 +48,11 @@ class WrapperGridAdapter(
     }
 
     override fun onBindViewHolder(holder: GridViewHold, position: Int) {
-        Log.d(TAG, "onBindViewHolder()")
+        Log.d(TAG, "onBindViewHolder(): gridView is:${holder.gridView}")
         // pass， or refresh the data
         // 根据position,喂对应的数据
         val adapter = holder.gridView.adapter as GridItemAdapter<*>
         adapter.submitData(getCurrentPageData(position))
-        holder.gridView.invalidate()
     }
 
     /**
