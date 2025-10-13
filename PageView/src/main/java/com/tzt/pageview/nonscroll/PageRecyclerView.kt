@@ -93,11 +93,11 @@ class PageRecyclerView @JvmOverloads constructor(
     /**
      * 如果为Grid模式，使用这个进行adapter的设置
      * */
-    fun setGridAdapter(gridAdapter: GridItemAdapter<*>, data: List<*>) {
+    fun setGridAdapter(viewBind: GridItemAdapter.IGridItemViewBind<*>, data: List<*>) {
         val lm = layoutManager as? PagerModel
         if (lm == null) throw Utils.layoutManagerError()
         this.adapter?.unregisterAdapterDataObserver(mObserver)
-        WrapperGridAdapter(context, gridAdapter, data, lm.itemsInPage, lm.columns).apply {
+        WrapperGridAdapter(context, viewBind, data, lm.itemsInPage, lm.columns).apply {
             Log.d(TAG, "setGridAdapter() Start")
             registerAdapterDataObserver(mObserver)
             super.setAdapter(this)

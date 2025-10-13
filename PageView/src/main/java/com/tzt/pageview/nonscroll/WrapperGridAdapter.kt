@@ -20,7 +20,7 @@ import com.tzt.pageview.nonscroll.WrapperGridAdapter.GridViewHold
  */
 class WrapperGridAdapter(
     val context: Context,
-    val gridAdapter: GridItemAdapter<*>,
+    val viewBind: GridItemAdapter.IGridItemViewBind<*>,
     val data: List<*>,
     val itemsCountInPage: Int,
     val columns: Int,
@@ -29,14 +29,14 @@ class WrapperGridAdapter(
         const val TAG = "WrapperGridAdapter"
     }
 
-    inner class GridViewHold(view: View) : RecyclerView.ViewHolder(view) {
+    inner class GridViewHold(val view: View) : RecyclerView.ViewHolder(view) {
 
         val gridView: GridView = view.findViewById<GridView>(R.id.grid_item_container).apply {
             Log.d(TAG, "GridViewHold init()")
             numColumns = columns
             gravity = Gravity.CENTER
             stretchMode = GridView.STRETCH_SPACING
-            adapter = gridAdapter
+            adapter = GridItemAdapter(context = context, gridItemViewBind = viewBind)
         }
     }
 
@@ -53,6 +53,15 @@ class WrapperGridAdapter(
         // 根据position,喂对应的数据
         val adapter = holder.gridView.adapter as GridItemAdapter<*>
         adapter.submitData(getCurrentPageData(position))
+        adapter.notifyDataSetChanged()
+        /*holder.gridView.post {
+            holder.gridView.requestLayout()
+        }*/
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        // 不复用Ui
+        return position
     }
 
     /**

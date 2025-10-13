@@ -1,3 +1,4 @@
+/*
 package com.tzt.customviews
 
 import android.content.Context
@@ -10,11 +11,13 @@ import android.widget.TextView
 import com.tzt.pageview.nonscroll.GridItemAdapter
 
 
+*/
 /**
  * @Description
  * @Author tanzhoutong
  * @Date 2025/10/10 17:05
- */
+ *//*
+
 class MyGridAdapter(val context: Context) : GridItemAdapter<ItemData>() {
 
     override fun viewBind(
@@ -30,10 +33,12 @@ class MyGridAdapter(val context: Context) : GridItemAdapter<ItemData>() {
         holder.imageView = view.findViewById(R.id.iv_icon)
         holder.textView = view.findViewById(R.id.tv_name)
         //view.tag = holder
-        /*} else {
+        */
+/*} else {
             view = convertView
             holder = convertView.tag as ViewHolder
-        }*/
+        }*//*
+
 
         // 设置数据
         val item: ItemData = data[position]
@@ -55,4 +60,4 @@ class MyGridAdapter(val context: Context) : GridItemAdapter<ItemData>() {
 }
 
 
-data class ItemData(val name: String)
+*/
