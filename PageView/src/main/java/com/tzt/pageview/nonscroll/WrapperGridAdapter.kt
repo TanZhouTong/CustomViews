@@ -36,7 +36,7 @@ class WrapperGridAdapter(
             numColumns = columns
             gravity = Gravity.CENTER
             stretchMode = GridView.STRETCH_SPACING
-            adapter = GridItemAdapter(context = context, gridItemViewBind = viewBind)
+            adapter = GridItemAdapter(context = context, gridItemViewBind = viewBind, columns = columns, rows = itemsCountInPage / columns)
         }
     }
 

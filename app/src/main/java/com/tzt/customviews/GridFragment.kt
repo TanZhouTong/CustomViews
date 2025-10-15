@@ -44,7 +44,7 @@ class GridFragment(): Fragment() {
     private fun initView(view: View) {
         pagerIndicator = view.findViewById(R.id.page_indicator)
         pageView = view.findViewById<PageRecyclerView>(R.id.page_view).apply {
-            layoutManager = PagerGridLayoutManager(context = requireActivity(), rowCount = 4, columnCount = 3)
+            layoutManager = PagerGridLayoutManager(context = requireActivity(), rowCount = 6, columnCount = 6)
             setGridAdapter(GridViewItemBind(), mutableListOf<ItemData>().apply {
                 for(index in 0..100) {
                     add(ItemData("test[$index]"))

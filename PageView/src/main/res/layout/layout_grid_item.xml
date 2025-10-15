@@ -7,8 +7,8 @@
     <GridView
         android:id="@+id/grid_item_container"
         android:layout_width="match_parent"
-        android:verticalSpacing="5dp"
-        android:layout_height="match_parent"
-        android:columnWidth="60dp" />
+        android:verticalSpacing="20dp"
+        android:columnWidth="1dp"
+        android:layout_height="match_parent" />
 
 </LinearLayout>

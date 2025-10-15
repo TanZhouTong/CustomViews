@@ -35,6 +35,9 @@ class GridViewItemBind: GridItemAdapter.IGridItemViewBind<ItemData> {
         textView.text = item.name
         Log.d(TAG, "viewBind [view] is $view")
         Log.d(TAG, "viewBind [data] is ${item.name}")
+        view.setOnClickListener {
+            Log.d(TAG, "CLICK ITEM IS -> ${data[position]}")
+        }
         return view
     }
 }

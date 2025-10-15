@@ -13,7 +13,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.tzt.custompopupwindow.CustomPopupWindow
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity(), OnClickListener {
     lateinit var toolbar: Toolbar
@@ -41,6 +47,8 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
         initView()
         setClickListener()
+
+        test()
     }
 
     private fun initView() {
@@ -122,5 +130,20 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     companion object {
         const val TAG = "MainActivity"
+    }
+
+    private val coroutineContext = Dispatchers.IO.limitedParallelism(2) + CoroutineName("Test")
+    private fun test() {
+        CoroutineScope(coroutineContext).launch {
+            for (i in 0 until 100) {
+                Log.d(TAG, "TEST AAAA : $i")
+            }
+        }
+
+        CoroutineScope(coroutineContext).launch {
+            for (i in 0 until 100) {
+                Log.d(TAG, "TEST BBBB : $i")
+            }
+        }
     }
 }
