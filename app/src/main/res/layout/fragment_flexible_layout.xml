@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.tzt.pageview.gridview.FlexibleGridView
+        android:id="@+id/flexible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        app:circle="true"
+        app:corner="10dp"
+        app:coverHeight="@dimen/flexible_grid_view_default_item_height"
+        app:coverWidth="@dimen/flexible_grid_view_default_item_width"
+        app:itemHorizontalMinGap="20dp"
+        app:itemVerticalMinGap="10dp" />
+
+</LinearLayout>

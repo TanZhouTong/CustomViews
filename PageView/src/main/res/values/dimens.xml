@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="flexible_grid_view_default_rb_text_size">12sp</dimen>
+    <dimen name="flexible_grid_view_default_title_text_size">12sp</dimen>
+    <dimen name="flexible_grid_view_default_corner_size">4dp</dimen>
+
+    <dimen name="flexible_grid_view_default_item_width">150dp</dimen>
+    <dimen name="flexible_grid_view_default_item_height">200dp</dimen>
+
+    <dimen name="flexible_grid_view_default_rt_size">48.75dp</dimen>
 
 </resources>

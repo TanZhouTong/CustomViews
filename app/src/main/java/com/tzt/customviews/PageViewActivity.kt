@@ -25,7 +25,7 @@ class PageViewActivity : AppCompatActivity() {
     private fun initView() {
         container = findViewById(R.id.fragment_container)
         supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container, GridFragment.getInstance())
+            .add(R.id.fragment_container, FlexibleGridFragment.getInstance())
             .commit()
         Log.d(TAG, "initView")
     }
