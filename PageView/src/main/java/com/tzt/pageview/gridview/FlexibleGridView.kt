@@ -17,17 +17,10 @@ import android.view.View
 import com.tzt.pageview.R
 import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.createBitmap
-import com.tzt.pageview.nonscroll.WrapperGridAdapter
 import androidx.core.graphics.withSave
 import com.tzt.pageview.nonscroll.PagerView
 import com.tzt.pageview.nonscroll.PagerViewNonScrollDelegate
-import kotlin.collections.remove
-import kotlin.compareTo
-import kotlin.dec
-import kotlin.div
-import kotlin.inc
-import kotlin.math.roundToInt
-import kotlin.rem
+import kotlin.math.abs
 
 /**
  * @Description
@@ -45,7 +38,7 @@ class FlexibleGridView @JvmOverloads constructor(
         const val TAG = "FlexibleGridView"
     }
 
-    val nonScroll = PagerViewNonScrollDelegate(this)
+    //val nonScroll = PagerViewNonScrollDelegate(this)
 
     /**
      * 后续去掉得了
@@ -283,12 +276,35 @@ class FlexibleGridView @JvmOverloads constructor(
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         Log.d(TAG, "onTouchEvent [x]-> ${event.actionMasked}")
-        return  nonScroll.onTouchEvent(this, event)
+        val handler = gestureDetector.onTouchEvent(event)
+        if(event.actionMasked == MotionEvent.ACTION_UP) {
+            if (isScroll) {
+                pageChangeIfNeed(if (abs(deltaX)> abs(deltaY)) deltaX else deltaY)
+                downX = -1f
+                downY = -1f
+                deltaX = 0f
+                deltaY = 0f
+                isScroll = false
+            }
+        }
+        return handler
         //return gestureDetector.onTouchEvent(event)
+    }
+
+    /**
+     * 根据手势拍段是否切页
+     */
+    private fun pageChangeIfNeed(delta: Float) {
+        Log.d(PagerViewNonScrollDelegate.Companion.TAG, "pageChangeIfNeed -> delta: $delta")
+        if (abs(delta) > pagingTouchSlop) {
+            if (delta > 0) previous()
+            else next()
+        }
     }
 
     private fun reloadUiWithAdapterInit() {
         // 确保当前view的大小已确定
+        // TODO: restore page data?
         Log.d(TAG, "reloadUiWithAdapterInit() invoke")
         post {
             reloadUiWithConfigurationChange()
@@ -376,20 +392,30 @@ class FlexibleGridView @JvmOverloads constructor(
 
     private fun getRealPosition(positionInPage: Int): Int {
         return adapter?.run {
-            currentPage * pageCount + positionInPage
+            currentPage * itemsInPage + positionInPage
         } ?: positionInPage
     }
+
+    val pagingTouchSlop = 16f
+    var downX = -1f
+    var downY = -1f
+    var deltaX = 0f
+    var deltaY = 0f
+    var isScroll = false
 
     // 手势识别，用来检测相关操作及回调
     val gestureDetector: GestureDetector =
         GestureDetector(context, object : GestureDetector.OnGestureListener {
             override fun onDown(e: MotionEvent): Boolean {
+                downX = e.x
+                downY = e.y
                 return true
             }
 
             override fun onShowPress(e: MotionEvent) {}
 
             override fun onSingleTapUp(e: MotionEvent): Boolean {
+                if(isScroll) return false
                 itemRectCache.forEachIndexed { positionInPage, rect ->
                     if (rect.contains(e.x, e.y)) {
                         adapter?.clickCallback?.onSingleTapUp(getRealPosition(positionInPage))
@@ -405,10 +431,20 @@ class FlexibleGridView @JvmOverloads constructor(
                 distanceX: Float,
                 distanceY: Float,
             ): Boolean {
+                if (downX < 0) {
+                    downX = e1?.x ?: e2.x
+                    downY = e1?.y ?: e2.y
+                }
+                deltaX = e2.x - downX
+                deltaY = e2.y - downY
+                if (abs(deltaX).coerceAtLeast(abs(deltaY)) >= pagingTouchSlop) {
+                    isScroll = true
+                }
                 return true
             }
 
             override fun onLongPress(e: MotionEvent) {
+                if(isScroll) return
                 itemRectCache.forEachIndexed { positionInPage, rect ->
                     if (rect.contains(e.x, e.y)) {
                         adapter?.clickCallback?.onLongPress(getRealPosition(positionInPage))
@@ -423,7 +459,7 @@ class FlexibleGridView @JvmOverloads constructor(
                 velocityX: Float,
                 velocityY: Float,
             ): Boolean {
-                return true
+                return false
             }
         })
 
@@ -441,6 +477,9 @@ class FlexibleGridView @JvmOverloads constructor(
                 reloadUiWithDataChange()
                 notifyPageChange(field, old)
             }
+        }
+        get() {
+            return if (field >= pageCount) pageCount - 1 else field
         }
     override var isLooper = true
 
@@ -539,7 +578,11 @@ class FlexibleGridView @JvmOverloads constructor(
             val nextPageFirst = (currentPage + 1) * itemsInPage
             val to = if (nextPageFirst <= totalSize) nextPageFirst else totalSize
             Log.d(TAG, "getCurrentPageData : from:$from -> to:$to")
-            return data.subList(from, to).toList()
+            return mutableListOf<T>().apply {
+                for (index in from until to) {
+                    add(data[index])
+                }
+            }
         }
 
         fun toPage(page: Int) {
@@ -601,14 +644,15 @@ class FlexibleGridView @JvmOverloads constructor(
 
         fun getProgressDescriptions(position: Int): String
 
-        fun getRtModel(position: Int): FlexibleRtModel
+        fun getRtConfig(position: Int): FlexibleRtConfig
     }
+
     /**
      * @param need 是否需要显示
      * @param bitmap 如果需要显示时，此bitmap不为空，并显示
      * @param ext 需要显示的额外信息，备用
      * */
-    data class FlexibleRtModel(
+    data class FlexibleRtConfig(
         val need: Boolean = false,
         val src: Bitmap? = null,
         val ext: String? = null,

@@ -51,7 +51,7 @@ class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
     }
 
     override fun onSingleTapUp(positionInPage: Int) {
-        Log.d(TAG, "OnClick...")
+        Log.d(TAG, "OnClick...$positionInPage")
         rows++
         columns++
         flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
@@ -62,7 +62,7 @@ class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
     }
 
     override fun onLongPress(positionInPage: Int) {
-        Log.d(TAG, "onLongPress...")
+        Log.d(TAG, "onLongPress...$positionInPage")
         rows--
         columns--
         flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {

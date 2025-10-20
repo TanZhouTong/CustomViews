@@ -15,7 +15,7 @@ import kotlin.math.abs
  * 分页控件不可滑动代理
  */
 class PagerViewNonScrollDelegate @JvmOverloads constructor(
-    view: View? = null,
+    val view: View? = null,
     private var pagingTouchSlop: Int = view?.let { ViewConfiguration.get(it.context).scaledPagingTouchSlop } ?: 16
 ) : NonScrollDelegate(view) {
 

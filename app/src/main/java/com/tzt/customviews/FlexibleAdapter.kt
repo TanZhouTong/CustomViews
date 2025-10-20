@@ -33,8 +33,8 @@ class FlexibleAdapter(
         return "Progress: $position"
     }
 
-    override fun getRtModel(position: Int): FlexibleGridView.FlexibleRtModel {
-        return FlexibleGridView.FlexibleRtModel()
+    override fun getRtConfig(position: Int): FlexibleGridView.FlexibleRtConfig {
+        return FlexibleGridView.FlexibleRtConfig()
     }
 }
 

@@ -53,6 +53,7 @@ open class NonScrollDelegate @JvmOverloads constructor(view: View? = null) {
                 downY = event.y.toInt()
                 touchType = TOUCH_DOWN
             }
+
             MotionEvent.ACTION_MOVE -> {
                 if (touchType == TOUCH_MOVING) return true
                 if (touchType == TOUCH_DOWN) {
@@ -81,6 +82,7 @@ open class NonScrollDelegate @JvmOverloads constructor(view: View? = null) {
                 downY = event.y.toInt()
                 touchType = TOUCH_DOWN
             }
+
             MotionEvent.ACTION_MOVE -> {
                 if (touchType == TOUCH_MOVING) return true
                 if (touchType == TOUCH_DOWN) {
@@ -89,8 +91,8 @@ open class NonScrollDelegate @JvmOverloads constructor(view: View? = null) {
                     if (deltaX > touchSlop || deltaY > touchSlop) {
                         touchType =
                             TOUCH_MOVING
-                        return true
                     }
+                    return true
                 } else if (touchType == TOUCH_IDLE) {
                     // ��ʱ��û��down�¼�ֱ��move
                     downX = event.x.toInt()
@@ -98,16 +100,17 @@ open class NonScrollDelegate @JvmOverloads constructor(view: View? = null) {
                     touchType = TOUCH_DOWN
                 }
             }
+
             MotionEvent.ACTION_UP -> {
                 val isMoving = touchType == TOUCH_MOVING
                 touchType = TOUCH_IDLE
                 return isMoving
             }
+
             MotionEvent.ACTION_CANCEL -> {
                 touchType = TOUCH_IDLE
             }
         }
-        // FlexibleGridView是一个view了，不再是ViewGroup，需要返回true
-        return true
+        return true // FlexibleGridView是一个view了，不再是ViewGroup，需要返回true
     }
 }
