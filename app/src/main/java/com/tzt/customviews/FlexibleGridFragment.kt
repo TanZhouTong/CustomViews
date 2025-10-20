@@ -46,11 +46,12 @@ class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
     private fun initView(view: View) {
         flexibleGridView = view.findViewById(R.id.flexible)
         pagerIndicator = view.findViewById(R.id.page_indicator)
-        flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
-            for (i in 0..100) {
-                add(FlexibleItem("item:$i"))
-            }
-        }, rows, columns, this)
+        flexibleGridView.adapter =
+            FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
+                for (i in 0..100) {
+                    add(FlexibleItem("item:$i"))
+                }
+            }, rows, columns, this)
         pagerIndicator.setupWithPagerView(flexibleGridView)
     }
 
@@ -58,21 +59,24 @@ class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
         Log.d(TAG, "OnClick...$positionInPage")
         rows++
         columns++
-        flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
-            for (i in 0..100) {
-                add(FlexibleItem("item:$i"))
-            }
-        }, rows, columns, this)
+        flexibleGridView.adapter =
+            FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
+                for (i in 0..100) {
+                    if (i % 10 == 0) add(FlexibleItem(""))
+                    else add(FlexibleItem("item:$i"))
+                }
+            }, rows, columns, this)
     }
 
     override fun onLongPress(positionInPage: Int) {
         Log.d(TAG, "onLongPress...$positionInPage")
         rows--
         columns--
-        flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
-            for (i in 0..100) {
-                add(FlexibleItem("item:$i"))
-            }
-        }, rows, columns, this)
+        flexibleGridView.adapter =
+            FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
+                for (i in 0..100) {
+                    add(FlexibleItem("item:$i"))
+                }
+            }, rows, columns, this)
     }
 }

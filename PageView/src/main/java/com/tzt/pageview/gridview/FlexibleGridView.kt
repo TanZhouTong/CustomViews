@@ -289,46 +289,47 @@ class FlexibleGridView @JvmOverloads constructor(
             }
             // 4. 画rb下载状态
             val rbRect = rbRectCache[index]
-            // 4.1 先画背景
-            val rbContent = adapter!!.getTitleText(getRealPosition(index))
-            val rbTextWidth = rbTextPaint.measureText(rbContent)
-            val validWidth = rbRect.width() - 2 * rbMarginHorizontalDimension
-            var isFull = rbTextWidth >= validWidth
-            val clipMeasureInfo = rbContent.clipMeasureInfo(rbTextPaint, validWidth)
-            val textLeft =
-                rbRect.width() - clipMeasureInfo.measureWidth - rbMarginHorizontalDimension
-            val backgroundRect =
-                RectF(
-                    if (isFull) rbRect.left else rbRect.left + textLeft - rbMarginHorizontalDimension,
-                    rbRect.top,
-                    rbRect.right,
-                    rbRect.bottom
+            val rbContent = adapter!!.getProgressDescriptions(getRealPosition(index))
+            if (rbContent.isNotEmpty()) {
+                // 4.1 先画背景
+                val rbTextWidth = rbTextPaint.measureText(rbContent)
+                val validWidth = rbRect.width() - 2 * rbMarginHorizontalDimension
+                var isFull = rbTextWidth >= validWidth
+                val clipMeasureInfo = rbContent.clipMeasureInfo(rbTextPaint, validWidth)
+                val textLeft =
+                    rbRect.width() - clipMeasureInfo.measureWidth - rbMarginHorizontalDimension
+                val backgroundRect =
+                    RectF(
+                        if (isFull) rbRect.left else rbRect.left + textLeft - rbMarginHorizontalDimension,
+                        rbRect.top,
+                        rbRect.right,
+                        rbRect.bottom
+                    )
+                Path().apply {
+                    addRoundRect(
+                        backgroundRect,
+                        floatArrayOf(
+                            0f,
+                            0f,
+                            0f,
+                            0f,
+                            itemCornerDimension,
+                            itemCornerDimension,
+                            if (isFull) itemCornerDimension else 0f,
+                            if (isFull) itemCornerDimension else 0f
+                        ),
+                        Path.Direction.CW
+                    )
+                    canvasCache.drawPath(this, rbBackgroundPaint)
+                }
+                // 4.2 再画字体
+                canvasCache.drawText(
+                    clipMeasureInfo.value,
+                    rbRect.left + textLeft,
+                    itemRect.top + rbBaseline,
+                    rbTextPaint
                 )
-            Path().apply {
-                addRoundRect(
-                    backgroundRect,
-                    floatArrayOf(
-                        0f,
-                        0f,
-                        0f,
-                        0f,
-                        itemCornerDimension,
-                        itemCornerDimension,
-                        if (isFull) itemCornerDimension else 0f,
-                        if (isFull) itemCornerDimension else 0f
-                    ),
-                    Path.Direction.CW
-                )
-                canvasCache.drawPath(this, rbBackgroundPaint)
             }
-            // 4.2 再画字体
-            canvasCache.drawText(
-                clipMeasureInfo.value,
-                rbRect.left + textLeft,
-                itemRect.top + rbBaseline,
-                rbTextPaint
-            )
-
             // 5. 画title字体
             canvasCache.drawText(
                 adapter!!.getTitleText(getRealPosition(index))
@@ -662,7 +663,6 @@ class FlexibleGridView @JvmOverloads constructor(
         }
 
         fun toPage(page: Int) {
-            //submitData(getCurrentPageData(page))
             notifyDataSetChange()
         }
 
