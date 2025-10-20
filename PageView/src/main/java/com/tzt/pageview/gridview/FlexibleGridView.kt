@@ -445,7 +445,7 @@ class FlexibleGridView @JvmOverloads constructor(
             for (column in 0 until columns) {
                 val left = column * (itemWidth + xGap) + paddingStart
                 val top = row * (itemHeight + yGap) + paddingTop
-                val rtRight = left + itemWidth - rtMarginRightDimension - paddingEnd
+                val rtRight = left + itemWidth - rtMarginRightDimension
                 val rtTop = top + rtMarginTopDimension + paddingTop
                 val rtSize = rtSize
                 val rbTop = top + coverHeight - rbTextPaint.fontMetrics.let { it.bottom - it.top }
