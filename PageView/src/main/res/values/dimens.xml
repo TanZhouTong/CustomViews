@@ -7,6 +7,6 @@
     <dimen name="flexible_grid_view_default_item_width">150dp</dimen>
     <dimen name="flexible_grid_view_default_item_height">200dp</dimen>
 
-    <dimen name="flexible_grid_view_default_rt_size">48.75dp</dimen>
+    <dimen name="flexible_grid_view_default_rt_size">22dp</dimen>
 
 </resources>

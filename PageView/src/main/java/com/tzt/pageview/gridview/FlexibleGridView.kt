@@ -63,6 +63,8 @@ class FlexibleGridView @JvmOverloads constructor(
                 throw IllegalArgumentException("setAdapter() is null")
             } else {
                 value.registerObserver(mObserver)
+                // 总页数修改
+                notifyPageCountChanged(pageCount)
                 reloadUiWithAdapterInit()
                 // 相关翻页信息也需更新
             }
@@ -89,6 +91,7 @@ class FlexibleGridView @JvmOverloads constructor(
     // attrs
     var coverWidthAttr: Float = 0f
     var coverHeightAttr: Float = 0f
+    var rtSizeAttr: Float = 0f
     var itemMinXGap: Float = 0f
     var itemMinYGap: Float = 0f
     var itemCornerDimension: Float = 0f
@@ -105,6 +108,8 @@ class FlexibleGridView @JvmOverloads constructor(
     var coverWidth = 0f
     var coverHeight = 0f
 
+    var rtSize = 0f
+
     var xGap = 0f
     var yGap = 0f
 
@@ -114,9 +119,11 @@ class FlexibleGridView @JvmOverloads constructor(
 
     // tool
     lateinit var strokePaint: Paint
-    lateinit var rbPaint: Paint
+    lateinit var rbTextPaint: Paint
     lateinit var titlePaint: Paint
     lateinit var bitmapPaint: Paint
+    lateinit var rtBitmapPaint: Paint
+    lateinit var rbBackgroundPaint: Paint
 
     init {
         // 这里获取相关属性数据 attrs解析
@@ -143,6 +150,10 @@ class FlexibleGridView @JvmOverloads constructor(
                 context.resources.getDimension(R.dimen.flexible_grid_view_default_corner_size)
             )
             // rt
+            rtSizeAttr = getDimension(
+                R.styleable.FlexibleGridView_rtSize,
+                context.resources.getDimension(R.dimen.flexible_grid_view_default_rt_size)
+            )
             rtMarginTopDimension = getDimension(R.styleable.FlexibleGridView_rtMarginTop, 0f)
             rtMarginRightDimension = getDimension(R.styleable.FlexibleGridView_rtMarginRight, 0f)
             // rb
@@ -167,11 +178,16 @@ class FlexibleGridView @JvmOverloads constructor(
             style = Paint.Style.STROKE
             isAntiAlias = true
         }
-        rbPaint = Paint().apply {
+        rbTextPaint = Paint().apply {
             textAlign = Paint.Align.LEFT
             isAntiAlias = true
-            color = Color.BLACK
+            color = Color.WHITE
             textSize = rbTextSizeDimension
+        }
+        rbBackgroundPaint = Paint().apply {
+            isAntiAlias = true
+            color = context.resources.getColor(R.color.opacity_gray, null)
+            style = Paint.Style.FILL
         }
         titlePaint = Paint().apply {
             textAlign = Paint.Align.LEFT
@@ -179,11 +195,16 @@ class FlexibleGridView @JvmOverloads constructor(
             color = Color.GRAY
             textSize = titleTextSizeDimension
         }
-
         bitmapPaint = Paint().apply {
             color = Color.WHITE
             isAntiAlias = true
             isFilterBitmap = true
+        }
+        rtBitmapPaint = Paint().apply {
+            color = Color.BLACK
+            isAntiAlias = true
+            isFilterBitmap = true
+            /*textAlign = Paint.Align.CENTER*/
         }
 
         isClickable = true
@@ -261,12 +282,57 @@ class FlexibleGridView @JvmOverloads constructor(
             )
 
             // 3. 画右上角select
-
+            val rtRect = rtRectCache[index]
+            val rtConfig = adapter!!.getRtConfig(getRealPosition(index))
+            if (rtConfig.need && rtConfig.src != null) {
+                canvasCache.drawBitmap(rtConfig.src, null, rtRect, rtBitmapPaint)
+            }
             // 4. 画rb下载状态
+            val rbRect = rbRectCache[index]
+            // 4.1 先画背景
+            val rbContent = adapter!!.getTitleText(getRealPosition(index))
+            val rbTextWidth = rbTextPaint.measureText(rbContent)
+            val validWidth = rbRect.width() - 2 * rbMarginHorizontalDimension
+            var isFull = rbTextWidth >= validWidth
+            val clipMeasureInfo = rbContent.clipMeasureInfo(rbTextPaint, validWidth)
+            val textLeft =
+                rbRect.width() - clipMeasureInfo.measureWidth - rbMarginHorizontalDimension
+            val backgroundRect =
+                RectF(
+                    if (isFull) rbRect.left else rbRect.left + textLeft - rbMarginHorizontalDimension,
+                    rbRect.top,
+                    rbRect.right,
+                    rbRect.bottom
+                )
+            Path().apply {
+                addRoundRect(
+                    backgroundRect,
+                    floatArrayOf(
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        itemCornerDimension,
+                        itemCornerDimension,
+                        if (isFull) itemCornerDimension else 0f,
+                        if (isFull) itemCornerDimension else 0f
+                    ),
+                    Path.Direction.CW
+                )
+                canvasCache.drawPath(this, rbBackgroundPaint)
+            }
+            // 4.2 再画字体
+            canvasCache.drawText(
+                clipMeasureInfo.value,
+                rbRect.left + textLeft,
+                itemRect.top + rbBaseline,
+                rbTextPaint
+            )
 
             // 5. 画title字体
             canvasCache.drawText(
-                adapter!!.getTitleText(getRealPosition(index)),
+                adapter!!.getTitleText(getRealPosition(index))
+                    .clipMeasureInfo(titlePaint, itemRect.width()).value,
                 itemRect.left,
                 itemRect.top + titleBaseline,
                 titlePaint
@@ -277,9 +343,9 @@ class FlexibleGridView @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         Log.d(TAG, "onTouchEvent [x]-> ${event.actionMasked}")
         val handler = gestureDetector.onTouchEvent(event)
-        if(event.actionMasked == MotionEvent.ACTION_UP) {
+        if (event.actionMasked == MotionEvent.ACTION_UP) {
             if (isScroll) {
-                pageChangeIfNeed(if (abs(deltaX)> abs(deltaY)) deltaX else deltaY)
+                pageChangeIfNeed(if (abs(deltaX) > abs(deltaY)) deltaX else deltaY)
                 downX = -1f
                 downY = -1f
                 deltaX = 0f
@@ -346,6 +412,9 @@ class FlexibleGridView @JvmOverloads constructor(
         coverWidth = coverWidthAttr / aspect
         coverHeight = coverHeightAttr / aspect
 
+        // 右上角的图标大小也需同步放缩
+        rtSize = rtSizeAttr / aspect
+
         // item的size数据
         itemWidth = coverWidth
         itemHeight = coverHeight + titleHeight
@@ -360,7 +429,7 @@ class FlexibleGridView @JvmOverloads constructor(
 
         // baseLine数据
         titleBaseline = coverHeight - titlePaint.fontMetrics.top
-        rbBaseline = coverHeight - rbPaint.fontMetrics.bottom
+        rbBaseline = coverHeight - rbTextPaint.fontMetrics.bottom
     }
 
     // 计算并保存各rect数据，用户后续填充样式数据
@@ -378,9 +447,8 @@ class FlexibleGridView @JvmOverloads constructor(
                 val top = row * (itemHeight + yGap) + paddingTop
                 val rtRight = left + itemWidth - rtMarginRightDimension - paddingEnd
                 val rtTop = top + rtMarginTopDimension + paddingTop
-                val rtSize =
-                    context.resources.getDimensionPixelSize(R.dimen.flexible_grid_view_default_rt_size)
-                val rbTop = top + coverHeight - rbPaint.fontMetrics.let { it.bottom - it.top }
+                val rtSize = rtSize
+                val rbTop = top + coverHeight - rbTextPaint.fontMetrics.let { it.bottom - it.top }
                 itemRectCache.add(RectF(left, top, left + itemWidth, top + itemHeight))
                 coverRectCache.add(RectF(left, top, left + itemWidth, top + coverHeight))
                 rtRectCache.add(RectF(rtRight - rtSize, rtTop, rtRight, rtTop + rtSize))
@@ -415,7 +483,7 @@ class FlexibleGridView @JvmOverloads constructor(
             override fun onShowPress(e: MotionEvent) {}
 
             override fun onSingleTapUp(e: MotionEvent): Boolean {
-                if(isScroll) return false
+                if (isScroll) return false
                 itemRectCache.forEachIndexed { positionInPage, rect ->
                     if (rect.contains(e.x, e.y)) {
                         adapter?.clickCallback?.onSingleTapUp(getRealPosition(positionInPage))
@@ -444,7 +512,7 @@ class FlexibleGridView @JvmOverloads constructor(
             }
 
             override fun onLongPress(e: MotionEvent) {
-                if(isScroll) return
+                if (isScroll) return
                 itemRectCache.forEachIndexed { positionInPage, rect ->
                     if (rect.contains(e.x, e.y)) {
                         adapter?.clickCallback?.onLongPress(getRealPosition(positionInPage))
@@ -541,6 +609,14 @@ class FlexibleGridView @JvmOverloads constructor(
         synchronized(pageChangeListeners) {
             pageChangeListeners.forEach {
                 it.onPageChange(this, current, previous)
+            }
+        }
+    }
+
+    private fun notifyPageCountChanged(pageCount: Int) {
+        synchronized(pageChangeListeners) {
+            pageChangeListeners.forEach {
+                it.onPageCountChange(this, pageCount)
             }
         }
     }

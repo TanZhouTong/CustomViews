@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.tzt.pageview.gridview.FlexibleGridView
+import com.tzt.pageview.nonscroll.TextPagerIndicator
 
 /**
  * @Description
@@ -16,6 +17,7 @@ import com.tzt.pageview.gridview.FlexibleGridView
  */
 class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
     lateinit var flexibleGridView: FlexibleGridView
+    lateinit var pagerIndicator: TextPagerIndicator
 
     companion object {
         const val TAG = "GridFragment"
@@ -43,11 +45,13 @@ class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
     @SuppressLint("NotifyDataSetChanged")
     private fun initView(view: View) {
         flexibleGridView = view.findViewById(R.id.flexible)
+        pagerIndicator = view.findViewById(R.id.page_indicator)
         flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
             for (i in 0..100) {
                 add(FlexibleItem("item:$i"))
             }
         }, rows, columns, this)
+        pagerIndicator.setupWithPagerView(flexibleGridView)
     }
 
     override fun onSingleTapUp(positionInPage: Int) {

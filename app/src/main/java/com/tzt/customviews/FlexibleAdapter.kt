@@ -34,7 +34,9 @@ class FlexibleAdapter(
     }
 
     override fun getRtConfig(position: Int): FlexibleGridView.FlexibleRtConfig {
-        return FlexibleGridView.FlexibleRtConfig()
+        val bitmap =
+            BitmapFactory.decodeResource(context.resources, R.drawable.icon_local_selected)
+        return FlexibleGridView.FlexibleRtConfig(true, bitmap, "aa")
     }
 }
 

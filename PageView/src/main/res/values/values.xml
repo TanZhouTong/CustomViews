@@ -6,6 +6,7 @@
     <color name="black">#ff000000</color>
     <color name="gray">#ff999999</color>
     <color name="white">#ffffffff</color>
+    <color name="opacity_gray">#99666666</color>
     <declare-styleable name="PageGridStyleable" ns1:ignore="ResourceName">
         <attr name="rowCount" format="integer" />
         <attr name="columnCount" format="integer" />
@@ -33,6 +34,7 @@
         <attr name="itemVerticalMinGap" format="dimension" />   <!--垂直方向上最小的gap-->
         <attr name="circle" format="boolean" /> <!--翻页循环-->
         <attr name="corner" format="dimension" /> <!--标题部分textSize-->
+        <attr name="rtSize" format="dimension" /> <!--右上部分元素的大小-->
         <attr name="rtMarginTop" format="dimension" /> <!--右上部分元素对上边界的margin-->
         <attr name="rtMarginRight" format="dimension" /> <!--右上部分元素对右边界的margin-->
         <attr name="rbTextSize" format="dimension" /> <!--右下部分textSize-->
