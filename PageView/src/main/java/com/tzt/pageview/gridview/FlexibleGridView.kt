@@ -442,6 +442,7 @@ class FlexibleGridView @JvmOverloads constructor(
             rbRectCache.clear()
             ltRectCache.clear() // lt待定
         }
+        // 这里只是一页复用
         for (row in 0 until rows) {
             for (column in 0 until columns) {
                 val left = column * (itemWidth + xGap) + paddingStart
@@ -449,7 +450,8 @@ class FlexibleGridView @JvmOverloads constructor(
                 val rtRight = left + itemWidth - rtMarginRightDimension
                 val rtTop = top + rtMarginTopDimension + paddingTop
                 val rtSize = rtSize
-                val rbTop = top + coverHeight - rbTextPaint.fontMetrics.let { it.bottom - it.top }
+                val rbTop =
+                    top + coverHeight - rbTextPaint.fontMetrics.let { it.bottom - it.top }
                 itemRectCache.add(RectF(left, top, left + itemWidth, top + itemHeight))
                 coverRectCache.add(RectF(left, top, left + itemWidth, top + coverHeight))
                 rtRectCache.add(RectF(rtRight - rtSize, rtTop, rtRight, rtTop + rtSize))
@@ -486,8 +488,9 @@ class FlexibleGridView @JvmOverloads constructor(
             override fun onSingleTapUp(e: MotionEvent): Boolean {
                 if (isScroll) return false
                 itemRectCache.forEachIndexed { positionInPage, rect ->
-                    if (rect.contains(e.x, e.y)) {
-                        adapter?.clickCallback?.onSingleTapUp(getRealPosition(positionInPage))
+                    val realPosition = getRealPosition(positionInPage)
+                    if (rect.contains(e.x, e.y) && realPosition < adapter!!.totalSize) {
+                        adapter?.clickCallback?.onSingleTapUp(realPosition)
                         return true
                     }
                 }
@@ -515,8 +518,9 @@ class FlexibleGridView @JvmOverloads constructor(
             override fun onLongPress(e: MotionEvent) {
                 if (isScroll) return
                 itemRectCache.forEachIndexed { positionInPage, rect ->
-                    if (rect.contains(e.x, e.y)) {
-                        adapter?.clickCallback?.onLongPress(getRealPosition(positionInPage))
+                    val realPosition = getRealPosition(positionInPage)
+                    if (rect.contains(e.x, e.y) && realPosition < adapter!!.totalSize) {
+                        adapter?.clickCallback?.onLongPress(realPosition)
                         return
                     }
                 }
