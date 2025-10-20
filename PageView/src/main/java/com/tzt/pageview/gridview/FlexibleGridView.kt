@@ -2,6 +2,7 @@ package com.tzt.pageview.gridview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.database.Observable
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -18,22 +19,41 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.createBitmap
 import com.tzt.pageview.nonscroll.WrapperGridAdapter
 import androidx.core.graphics.withSave
+import com.tzt.pageview.nonscroll.PagerView
+import com.tzt.pageview.nonscroll.PagerViewNonScrollDelegate
+import kotlin.collections.remove
+import kotlin.compareTo
+import kotlin.dec
+import kotlin.div
+import kotlin.inc
 import kotlin.math.roundToInt
+import kotlin.rem
 
 /**
  * @Description
  * @Author tanzhoutong
  * @Date 2025/10/16 13:53
  */
-class FlexibleGridView<T> @JvmOverloads constructor(
+class FlexibleGridView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : View(context, attrs, defStyleAttr) {
+) : View(context, attrs, defStyleAttr), PagerView {
 
     companion object {
         const val INVALID = -1
         const val TAG = "FlexibleGridView"
+    }
+
+    val nonScroll = PagerViewNonScrollDelegate(this)
+
+    /**
+     * 后续去掉得了
+     * */
+    val mObserver: FlexibleGridDataSetObserver = object : FlexibleGridDataSetObserver() {
+        override fun onChanged() {
+            reloadUiWithDataChange()
+        }
     }
 
     val itemRectCache: MutableList<RectF> = mutableListOf()     // 各子item的rect
@@ -42,12 +62,14 @@ class FlexibleGridView<T> @JvmOverloads constructor(
     val rbRectCache: MutableList<RectF> = mutableListOf()       // 子item 右下角rect，用户文件状态描述
     val ltRectCache: MutableList<RectF> = mutableListOf()       // 子item 左上角预留的rect，内容待定
 
-    var adapter: Adapter? = null    // 如果adapter为null时，默认作为还没有数据
+    var adapter: Adapter<*>? = null    // 如果adapter为null时，默认作为还没有数据
         set(value) {
+            field?.unRegisterObserver(mObserver)
             field = value
             if (value == null) {
                 throw IllegalArgumentException("setAdapter() is null")
             } else {
+                value.registerObserver(mObserver)
                 reloadUiWithAdapterInit()
                 // 相关翻页信息也需更新
             }
@@ -76,7 +98,6 @@ class FlexibleGridView<T> @JvmOverloads constructor(
     var coverHeightAttr: Float = 0f
     var itemMinXGap: Float = 0f
     var itemMinYGap: Float = 0f
-    var isCircle: Boolean = true
     var itemCornerDimension: Float = 0f
     var rtMarginTopDimension: Float = 0f
     var rtMarginRightDimension: Float = 0f
@@ -123,7 +144,7 @@ class FlexibleGridView<T> @JvmOverloads constructor(
             )
             itemMinXGap = getDimension(R.styleable.FlexibleGridView_itemHorizontalMinGap, 0f)
             itemMinYGap = getDimension(R.styleable.FlexibleGridView_itemVerticalMinGap, 0f)
-            isCircle = getBoolean(R.styleable.FlexibleGridView_circle, true)
+            isLooper = getBoolean(R.styleable.FlexibleGridView_circle, true)
             itemCornerDimension = getDimension(
                 R.styleable.FlexibleGridView_corner,
                 context.resources.getDimension(R.dimen.flexible_grid_view_default_corner_size)
@@ -148,7 +169,7 @@ class FlexibleGridView<T> @JvmOverloads constructor(
 
         // paint
         strokePaint = Paint().apply {
-            strokeWidth = 5f
+            strokeWidth = 1f
             color = Color.BLACK
             style = Paint.Style.STROKE
             isAntiAlias = true
@@ -168,7 +189,6 @@ class FlexibleGridView<T> @JvmOverloads constructor(
 
         bitmapPaint = Paint().apply {
             color = Color.WHITE
-//            style = Paint.Style.FILL
             isAntiAlias = true
             isFilterBitmap = true
         }
@@ -190,7 +210,6 @@ class FlexibleGridView<T> @JvmOverloads constructor(
             return
         }
         // 计算rect
-        //reloadUiWithConfigurationChange()
     }
 
     lateinit var canvasCache: Canvas
@@ -209,101 +228,64 @@ class FlexibleGridView<T> @JvmOverloads constructor(
             canvasCache = Canvas(createBitmap(width, height, Bitmap.Config.ARGB_8888).also {
                 cacheBitmap = it
             })
-            adapter?.currentPageData?.forEachIndexed { index, item ->
-                drawGridItem(index, item)
+            adapter?.getCurrentPageData(currentPage)?.forEachIndexed { index, item ->
+                drawGridItem(index)
             }
             canvas.drawBitmap(cacheBitmap, 0f, 0f, bitmapPaint)
         }
     }
 
-    private fun drawGridItem(index: Int, item: T) {
-
-        // 1. draw 背景
-        val coverRect = coverRectCache[index]
+    private fun drawGridItem(index: Int) {
+        val itemRect = itemRectCache[index]
         canvasCache.withSave {
-            val path = Path().apply {
-                addRoundRect(
+            clipRect(itemRect)
+            // 1. draw 背景
+            val coverRect = coverRectCache[index]
+            canvasCache.withSave {
+                val path = Path().apply {
+                    addRoundRect(
+                        coverRect,
+                        itemCornerDimension,
+                        itemCornerDimension,
+                        Path.Direction.CW
+                    )
+                }
+                clipPath(path)
+                drawBitmap(
+                    adapter!!.getCoverBitmap(getRealPosition(index), coverWidth, coverHeight),
+                    null,
                     coverRect,
-                    itemCornerDimension,
-                    itemCornerDimension,
-                    Path.Direction.CW
+                    bitmapPaint
                 )
             }
-            clipPath(path)
-            drawBitmap(
-                createBitmap(
-                    (coverWidth + 0.5f).roundToInt(),
-                    (coverHeight + 0.5f).roundToInt(),
-                    Bitmap.Config.ARGB_8888
-                ),
-                null,
-                coverRect,
-                bitmapPaint
+
+            // 2. draw 外框
+            canvasCache.drawRoundRect(
+                coverRectCache[index],
+                itemCornerDimension,
+                itemCornerDimension,
+                strokePaint
+            )
+
+            // 3. 画右上角select
+
+            // 4. 画rb下载状态
+
+            // 5. 画title字体
+            canvasCache.drawText(
+                adapter!!.getTitleText(getRealPosition(index)),
+                itemRect.left,
+                itemRect.top + titleBaseline,
+                titlePaint
             )
         }
-
-        // 2. draw 外框
-        canvasCache.drawRoundRect(
-            coverRectCache[index],
-            itemCornerDimension,
-            itemCornerDimension,
-            strokePaint
-        )
-
-        // 3. 画右上角select
-
-        // 4. 画rb下载状态
-
-        // 5. 画title字体
-        val itemRect = itemRectCache[index]
-        canvasCache.drawText(
-            "test[${adapter!!.currentPage}]-[$index]",
-            itemRect.left,
-            itemRect.top + titleBaseline,
-            titlePaint
-        )
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        return gestureDetector.onTouchEvent(event)
+        Log.d(TAG, "onTouchEvent [x]-> ${event.actionMasked}")
+        return  nonScroll.onTouchEvent(this, event)
+        //return gestureDetector.onTouchEvent(event)
     }
-
-    // 手势识别，用来检测相关操作及回调
-    val gestureDetector: GestureDetector =
-        GestureDetector(context, object : GestureDetector.OnGestureListener {
-            override fun onDown(e: MotionEvent): Boolean {
-                return true
-            }
-
-            override fun onShowPress(e: MotionEvent) {}
-
-            override fun onSingleTapUp(e: MotionEvent): Boolean {
-                performClick()
-                return true
-            }
-
-            override fun onScroll(
-                e1: MotionEvent?,
-                e2: MotionEvent,
-                distanceX: Float,
-                distanceY: Float,
-            ): Boolean {
-                return true
-            }
-
-            override fun onLongPress(e: MotionEvent) {
-
-            }
-
-            override fun onFling(
-                e1: MotionEvent?,
-                e2: MotionEvent,
-                velocityX: Float,
-                velocityY: Float,
-            ): Boolean {
-                return true
-            }
-        })
 
     private fun reloadUiWithAdapterInit() {
         // 确保当前view的大小已确定
@@ -392,22 +374,150 @@ class FlexibleGridView<T> @JvmOverloads constructor(
         }
     }
 
+    private fun getRealPosition(positionInPage: Int): Int {
+        return adapter?.run {
+            currentPage * pageCount + positionInPage
+        } ?: positionInPage
+    }
+
+    // 手势识别，用来检测相关操作及回调
+    val gestureDetector: GestureDetector =
+        GestureDetector(context, object : GestureDetector.OnGestureListener {
+            override fun onDown(e: MotionEvent): Boolean {
+                return true
+            }
+
+            override fun onShowPress(e: MotionEvent) {}
+
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                itemRectCache.forEachIndexed { positionInPage, rect ->
+                    if (rect.contains(e.x, e.y)) {
+                        adapter?.clickCallback?.onSingleTapUp(getRealPosition(positionInPage))
+                        return true
+                    }
+                }
+                return false
+            }
+
+            override fun onScroll(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                distanceX: Float,
+                distanceY: Float,
+            ): Boolean {
+                return true
+            }
+
+            override fun onLongPress(e: MotionEvent) {
+                itemRectCache.forEachIndexed { positionInPage, rect ->
+                    if (rect.contains(e.x, e.y)) {
+                        adapter?.clickCallback?.onLongPress(getRealPosition(positionInPage))
+                        return
+                    }
+                }
+            }
+
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float,
+            ): Boolean {
+                return true
+            }
+        })
+
+    private val pageChangeListeners by lazy { arrayListOf<PagerView.OnPageChangeListener>() }
+
+    // 保持currentPage
+    override var currentPage: Int = 0
+        set(value) {
+            val old = field
+            //val expect = if (value >= pageCount) pageCount - 1 else value
+            field = value
+            // 页面数据修改
+            adapter?.let {
+                //it.toPage(field)
+                reloadUiWithDataChange()
+                notifyPageChange(field, old)
+            }
+        }
+    override var isLooper = true
+
+    override val pageCount: Int
+        get() {
+            return adapter?.pageCount ?: 0
+        }
+
+    override fun previous(): Boolean {
+        var current = currentPage
+        if (current == 0 && !isLooper) {
+            notifyPageChangeError(PagerView.ERROR_ISFIRST)
+            return false
+        }
+        current--
+        if (current < 0) {
+            current = 0.coerceAtLeast(pageCount - 1)
+        }
+        currentPage = current
+        return true
+    }
+
+    override fun next(): Boolean {
+        var current = currentPage
+        if (current == pageCount - 1 && !isLooper) {
+            notifyPageChangeError(PagerView.ERROR_ISLAST)
+            return false
+        }
+        current++
+        if (current >= pageCount) {
+            current = 0
+        }
+        currentPage = current
+        return true
+    }
+
+    override fun addOnPageChangeListener(listener: PagerView.OnPageChangeListener) {
+        synchronized(pageChangeListeners) {
+            if (pageChangeListeners.contains(listener)) return
+            pageChangeListeners.add(listener)
+        }
+    }
+
+    override fun removeOnPageChangeListener(listener: PagerView.OnPageChangeListener) {
+        synchronized(pageChangeListeners) {
+            pageChangeListeners.remove(listener)
+        }
+    }
+
+    private fun notifyPageChangeError(errorCode: Int) {
+        synchronized(pageChangeListeners) {
+            pageChangeListeners.forEach {
+                it.onPageChangeError(this, errorCode)
+            }
+        }
+    }
+
+    private fun notifyPageChange(current: Int, previous: Int) {
+        synchronized(pageChangeListeners) {
+            pageChangeListeners.forEach {
+                it.onPageChange(this, current, previous)
+            }
+        }
+    }
+
     // 建立一个adapter进行对数据的管理以及业务逻辑的控制
-    inner class Adapter(private val data: MutableList<T>, var rows: Int, var columns: Int) {
+    abstract class Adapter<T>(
+        val data: MutableList<T>,
+        val rows: Int,
+        val columns: Int,
+        val clickCallback: IClickCallback? = null,
+    ) : IDataWrapper {
+        private val observable = FlexibleGridObservable()
 
-        var currentPage: Int = 0
-
-        val currentPageData: List<T>
+        val pageCount: Int
             get() {
-                Log.d(
-                    WrapperGridAdapter.Companion.TAG,
-                    "getCurrentPageData currentPage:$currentPage"
-                )
-                val from = currentPage * itemsInPage
-                val nextPageFirst = (currentPage + 1) * itemsInPage
-                val to = if (nextPageFirst <= totalSize) nextPageFirst else totalSize
-                Log.d(TAG, "getCurrentPageData : from:$from -> to:$to")
-                return data.subList(from, to)
+                return totalSize / itemsInPage + if (totalSize % itemsInPage == 0) 0 else 1
             }
 
         val itemsInPage: Int
@@ -420,20 +530,87 @@ class FlexibleGridView<T> @JvmOverloads constructor(
                 return data.size
             }
 
-        val pageCount: Int
-            get() {
-                return totalSize / itemsInPage + if (totalSize % itemsInPage == 0) 0 else 1
-            }
+        fun getCurrentPageData(currentPage: Int): List<T> {
+            Log.d(
+                TAG,
+                "getCurrentPageData currentPage:$currentPage"
+            )
+            val from = currentPage * itemsInPage
+            val nextPageFirst = (currentPage + 1) * itemsInPage
+            val to = if (nextPageFirst <= totalSize) nextPageFirst else totalSize
+            Log.d(TAG, "getCurrentPageData : from:$from -> to:$to")
+            return data.subList(from, to).toList()
+        }
+
+        fun toPage(page: Int) {
+            //submitData(getCurrentPageData(page))
+            notifyDataSetChange()
+        }
 
         fun submitData(list: List<T>) {
             data.clear()
             data.addAll(list)
         }
 
+        /**预留拓展相关数据变化时得回调**/
         fun notifyDataSetChange() {
-            reloadUiWithDataChange()
+            observable.notifyDataChange()
         }
 
-        // todo page相关的管理
+        fun registerObserver(observer: FlexibleGridDataSetObserver) {
+            observable.registerObserver(observer)
+        }
+
+        fun unRegisterObserver(observer: FlexibleGridDataSetObserver) {
+            observable.unregisterObserver(observer)
+        }
     }
+
+
+    private class FlexibleGridObservable : Observable<FlexibleGridDataSetObserver>() {
+        fun notifyDataChange() {
+            mObservers.forEach {
+                it.onChanged()
+            }
+        }
+    }
+
+    /**
+     * 数据观察者接口
+     * */
+    abstract class FlexibleGridDataSetObserver {
+        abstract fun onChanged()
+    }
+
+    /**
+     * 点击相关
+     * */
+    interface IClickCallback {
+        fun onSingleTapUp(positionInPage: Int)
+
+        fun onLongPress(positionInPage: Int)
+    }
+
+    interface IDataWrapper {
+        /**
+         * @param position 真实的位置，非当页position
+         * */
+        fun getCoverBitmap(position: Int, expectWidth: Float, expectHeight: Float): Bitmap
+
+        fun getTitleText(position: Int): String
+
+        fun getProgressDescriptions(position: Int): String
+
+        fun getRtModel(position: Int): FlexibleRtModel
+    }
+    /**
+     * @param need 是否需要显示
+     * @param bitmap 如果需要显示时，此bitmap不为空，并显示
+     * @param ext 需要显示的额外信息，备用
+     * */
+    data class FlexibleRtModel(
+        val need: Boolean = false,
+        val src: Bitmap? = null,
+        val ext: String? = null,
+    )
 }

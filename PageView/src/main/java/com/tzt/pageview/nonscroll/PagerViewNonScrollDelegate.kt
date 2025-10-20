@@ -1,5 +1,6 @@
 package com.tzt.pageview.nonscroll
 
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -28,6 +29,7 @@ class PagerViewNonScrollDelegate @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(view: View, event: MotionEvent): Boolean {
+        Log.w(TAG, "onTouchEvent -> ${event.actionMasked}")
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 downX = event.x.toInt()
@@ -77,9 +79,14 @@ class PagerViewNonScrollDelegate @JvmOverloads constructor(
      * 根据手势拍段是否切页
      */
     private fun pageChangeIfNeed(delta: Float) {
+        Log.d(TAG, "pageChangeIfNeed -> delta: $delta")
         if (abs(delta) > pagingTouchSlop) {
             if (delta > 0) pagerView?.previous()
             else pagerView?.next()
         }
+    }
+
+    companion object {
+        const val TAG = "PagerViewNonScrollDelegate"
     }
 }

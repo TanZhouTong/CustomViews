@@ -37,10 +37,10 @@ open class NonScrollDelegate @JvmOverloads constructor(view: View? = null) {
     fun attachToView(view: View) {
         val configuration = ViewConfiguration.get(view.context)
         touchSlop = configuration.scaledTouchSlop
-        view.setOnTouchListener { v, event ->
+        /*view.setOnTouchListener { v, event ->
             val result = onTouchEvent(v, event)
             result
-        }
+        }*/
         onViewAttached(view)
     }
 
@@ -107,6 +107,7 @@ open class NonScrollDelegate @JvmOverloads constructor(view: View? = null) {
                 touchType = TOUCH_IDLE
             }
         }
-        return false
+        // FlexibleGridView是一个view了，不再是ViewGroup，需要返回true
+        return true
     }
 }

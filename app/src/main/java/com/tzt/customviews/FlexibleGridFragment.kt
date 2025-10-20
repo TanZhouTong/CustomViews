@@ -14,11 +14,12 @@ import com.tzt.pageview.gridview.FlexibleGridView
  * @Author tanzhoutong
  * @Date 2025/10/17 10:17
  */
-class FlexibleGridFragment: Fragment() {
-    lateinit var flexibleGridView: FlexibleGridView<Int>
+class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
+    lateinit var flexibleGridView: FlexibleGridView
+
     companion object {
         const val TAG = "GridFragment"
-        fun getInstance() : FlexibleGridFragment {
+        fun getInstance(): FlexibleGridFragment {
             return FlexibleGridFragment()
         }
     }
@@ -26,7 +27,7 @@ class FlexibleGridFragment: Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         return inflater.inflate(R.layout.fragment_flexible_layout, container, false)
     }
@@ -35,26 +36,39 @@ class FlexibleGridFragment: Fragment() {
         initView(view)
         Log.d(TAG, "onViewCreated success")
     }
-    var rows = 2
-    var columns = 2
+
+    var rows = 3
+    var columns = 4
 
     @SuppressLint("NotifyDataSetChanged")
     private fun initView(view: View) {
         flexibleGridView = view.findViewById(R.id.flexible)
-        flexibleGridView.adapter = flexibleGridView.Adapter(mutableListOf<Int>().apply {
-            for (i in 0..rows * columns) {
-                add(i)
+        flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
+            for (i in 0..100) {
+                add(FlexibleItem("item:$i"))
             }
-        }, rows, columns)
-        flexibleGridView.setOnClickListener {
-            Log.d(TAG, "OnClick...")
-            rows++
-            columns ++
-            flexibleGridView.adapter = flexibleGridView.Adapter(mutableListOf<Int>().apply {
-                for (i in 0..rows * columns) {
-                    add(i)
-                }
-            }, rows, columns)
-        }
+        }, rows, columns, this)
+    }
+
+    override fun onSingleTapUp(positionInPage: Int) {
+        Log.d(TAG, "OnClick...")
+        rows++
+        columns++
+        flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
+            for (i in 0..100) {
+                add(FlexibleItem("item:$i"))
+            }
+        }, rows, columns, this)
+    }
+
+    override fun onLongPress(positionInPage: Int) {
+        Log.d(TAG, "onLongPress...")
+        rows--
+        columns--
+        flexibleGridView.adapter = FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
+            for (i in 0..100) {
+                add(FlexibleItem("item:$i"))
+            }
+        }, rows, columns, this)
     }
 }
