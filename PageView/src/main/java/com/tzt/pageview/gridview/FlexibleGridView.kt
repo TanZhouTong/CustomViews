@@ -460,6 +460,10 @@ class FlexibleGridView @JvmOverloads constructor(
             rbRectCache.clear()
             ltRectCache.clear() // lt待定
         }
+        if (rows == INVALID || columns == INVALID) {
+            Log.e(TAG, "ensure adapter init [Y]")
+            return
+        }
         // 这里只是一页的rect，进行复用
         for (row in 0 until rows) {
             for (column in 0 until columns) {
