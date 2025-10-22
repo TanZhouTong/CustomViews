@@ -99,6 +99,7 @@ class FlexibleGridView @JvmOverloads constructor(
     var rbMarginVerticalDimension: Float = 0f
     var rbMarginHorizontalDimension: Float = 0f
     var titleTextSizeDimension: Float = 0f
+    var titleTextAlignment: Int = 0
 
     // property
     var itemWidth = 0f
@@ -122,6 +123,9 @@ class FlexibleGridView @JvmOverloads constructor(
     lateinit var bitmapPaint: Paint
     lateinit var rtBitmapPaint: Paint
     lateinit var rbBackgroundPaint: Paint
+
+    lateinit var canvasCache: Canvas    // 离屏canvas
+    lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
 
     init {
         // 这里获取相关属性数据 attrs解析
@@ -167,6 +171,8 @@ class FlexibleGridView @JvmOverloads constructor(
                 R.styleable.FlexibleGridView_titleTextSize,
                 context.resources.getDimension(R.dimen.flexible_grid_view_default_title_text_size)
             )
+            // 默认靠左
+            titleTextAlignment = getInteger(R.styleable.FlexibleGridView_titleTextAlign, 0)
         }
 
         // paint
@@ -223,9 +229,6 @@ class FlexibleGridView @JvmOverloads constructor(
         }
         // 计算rect
     }
-
-    lateinit var canvasCache: Canvas
-    lateinit var cacheBitmap: Bitmap
 
     // 绘制，需要考虑： 1.背景封面 2.右上角图标 3.文字 4.后续可能需要拓展的view部分
     @SuppressLint("DrawAllocation")
@@ -329,16 +332,33 @@ class FlexibleGridView @JvmOverloads constructor(
                 )
             }
             // 5. 画title字体
+            val titleClipMeasureInfo = adapter!!.getTitleText(getRealPosition(index))
+                .clipMeasureInfo(titlePaint, itemRect.width())
+            val leftDistance = when (titleTextAlignment) {
+                0 -> { // left
+                    0f
+                }
+
+                1 -> { // center
+                    (itemRect.width() - titleClipMeasureInfo.measureWidth) / 2f
+                }
+
+                2 -> { // right
+                    itemRect.width() - titleClipMeasureInfo.measureWidth
+                }
+
+                else -> throw IllegalArgumentException("unknown attr value: $titleTextAlignment of FlexibleGridView_titleTextAlign")
+            }
             canvasCache.drawText(
-                adapter!!.getTitleText(getRealPosition(index))
-                    .clipMeasureInfo(titlePaint, itemRect.width()).value,
-                itemRect.left,
+                titleClipMeasureInfo.value,
+                itemRect.left + leftDistance,
                 itemRect.top + titleBaseline,
                 titlePaint
             )
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         Log.d(TAG, "onTouchEvent [x]-> ${event.actionMasked}")
         val handler = gestureDetector.onTouchEvent(event)
@@ -440,7 +460,7 @@ class FlexibleGridView @JvmOverloads constructor(
             rbRectCache.clear()
             ltRectCache.clear() // lt待定
         }
-        // 这里只是一页复用
+        // 这里只是一页的rect，进行复用
         for (row in 0 until rows) {
             for (column in 0 until columns) {
                 val left = column * (itemWidth + xGap) + paddingStart

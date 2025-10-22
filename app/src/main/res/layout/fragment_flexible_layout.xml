@@ -15,6 +15,7 @@
         android:focusable="true"
         app:circle="true"
         app:corner="4dp"
+        app:titleTextAlign="center"
         app:coverHeight="@dimen/flexible_grid_view_default_item_height"
         app:coverWidth="@dimen/flexible_grid_view_default_item_width"
         app:itemHorizontalMinGap="20dp"

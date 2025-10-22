@@ -41,5 +41,10 @@
         <attr name="rbMarginHorizontal" format="dimension" /> <!--右下部分对于所在rect的左边距-->
         <attr name="rbMarginVertical" format="dimension" /> <!--右下部分对于所在rect的右边距-->
         <attr name="titleTextSize" format="dimension" /> <!--标题部分textSize-->
+        <attr name="titleTextAlign"> <!--标题部分textSize-->
+            <flag name="left" value="0" />
+            <flag name="center" value="1" />
+            <flag name="right" value="2" />
+        </attr>
     </declare-styleable>
 </resources>
