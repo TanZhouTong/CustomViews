@@ -39,8 +39,8 @@ class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
         Log.d(TAG, "onViewCreated success")
     }
 
-    var rows = -1
-    var columns = -1
+    var rows = 3
+    var columns = 4
 
     @SuppressLint("NotifyDataSetChanged")
     private fun initView(view: View) {

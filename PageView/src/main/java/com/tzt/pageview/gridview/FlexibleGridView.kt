@@ -98,6 +98,8 @@ class FlexibleGridView @JvmOverloads constructor(
     var rbTextSizeDimension: Float = 0f
     var rbMarginVerticalDimension: Float = 0f
     var rbMarginHorizontalDimension: Float = 0f
+    var rbBackgroundColor: Int = 0  // 背景色
+    var rbTitleTextColor: Int = 0 // 前景色
     var titleTextSizeDimension: Float = 0f
     var titleTextAlignment: Int = 0
 
@@ -167,6 +169,12 @@ class FlexibleGridView @JvmOverloads constructor(
                 getDimension(R.styleable.FlexibleGridView_rbMarginHorizontal, 0f)
             rbMarginVerticalDimension =
                 getDimension(R.styleable.FlexibleGridView_rbMarginVertical, 0f)
+            rbBackgroundColor = getColor(
+                R.styleable.FlexibleGridView_rbBackgroundColor,
+                context.resources.getColor(R.color.opacity_gray, null)
+            )
+            rbTitleTextColor = getColor(R.styleable.FlexibleGridView_rbForegroundColor, Color.WHITE)
+            // title
             titleTextSizeDimension = getDimension(
                 R.styleable.FlexibleGridView_titleTextSize,
                 context.resources.getDimension(R.dimen.flexible_grid_view_default_title_text_size)
@@ -185,12 +193,12 @@ class FlexibleGridView @JvmOverloads constructor(
         rbTextPaint = Paint().apply {
             textAlign = Paint.Align.LEFT
             isAntiAlias = true
-            color = Color.WHITE
+            color = rbTitleTextColor
             textSize = rbTextSizeDimension
         }
         rbBackgroundPaint = Paint().apply {
             isAntiAlias = true
-            color = context.resources.getColor(R.color.opacity_gray, null)
+            color = rbBackgroundColor
             style = Paint.Style.FILL
         }
         titlePaint = Paint().apply {

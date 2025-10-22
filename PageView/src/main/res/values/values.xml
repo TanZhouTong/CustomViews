@@ -40,6 +40,8 @@
         <attr name="rbTextSize" format="dimension" /> <!--右下部分textSize-->
         <attr name="rbMarginHorizontal" format="dimension" /> <!--右下部分对于所在rect的左边距-->
         <attr name="rbMarginVertical" format="dimension" /> <!--右下部分对于所在rect的右边距-->
+        <attr name="rbForegroundColor" format="color" /> <!--右下部分前景色（字体颜色）-->
+        <attr name="rbBackgroundColor" format="color" /> <!--右下部分背景色-->
         <attr name="titleTextSize" format="dimension" /> <!--标题部分textSize-->
         <attr name="titleTextAlign"> <!--标题部分textSize-->
             <flag name="left" value="0" />
