@@ -19,7 +19,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withSave
 import com.tzt.pageview.nonscroll.PagerView
-import com.tzt.pageview.nonscroll.PagerViewNonScrollDelegate
+import java.lang.IllegalStateException
 import kotlin.math.abs
 
 /**
@@ -37,8 +37,6 @@ class FlexibleGridView @JvmOverloads constructor(
         const val INVALID = -1
         const val TAG = "FlexibleGridView"
     }
-
-    //val nonScroll = PagerViewNonScrollDelegate(this)
 
     /**
      * 后续去掉得了
@@ -362,7 +360,7 @@ class FlexibleGridView @JvmOverloads constructor(
      * 根据手势拍段是否切页
      */
     private fun pageChangeIfNeed(delta: Float) {
-        Log.d(PagerViewNonScrollDelegate.Companion.TAG, "pageChangeIfNeed -> delta: $delta")
+        Log.d(TAG, "pageChangeIfNeed -> delta: $delta")
         if (abs(delta) > pagingTouchSlop) {
             if (delta > 0) previous()
             else next()
@@ -464,7 +462,7 @@ class FlexibleGridView @JvmOverloads constructor(
     private fun getRealPosition(positionInPage: Int): Int {
         return adapter?.run {
             currentPage * itemsInPage + positionInPage
-        } ?: positionInPage
+        } ?: throw IllegalStateException("please ensure the FlexibleGridView adapter init [X]")
     }
 
     val pagingTouchSlop = 16f
@@ -546,7 +544,6 @@ class FlexibleGridView @JvmOverloads constructor(
             field = value
             // 页面数据修改
             adapter?.let {
-                //it.toPage(field)
                 reloadUiWithDataChange()
                 notifyPageChange(field, old)
             }
@@ -586,6 +583,16 @@ class FlexibleGridView @JvmOverloads constructor(
             current = 0
         }
         currentPage = current
+        return true
+    }
+
+    override fun to(page: Int): Boolean {
+        // 转化为index
+        var expect = page - 1
+        if (expect >= pageCount || expect < 0) {
+            return false
+        }
+        currentPage = expect
         return true
     }
 
@@ -632,7 +639,7 @@ class FlexibleGridView @JvmOverloads constructor(
         val rows: Int,
         val columns: Int,
         val clickCallback: IClickCallback? = null,
-    ) : IDataWrapper {
+    ) : IDataStation {
         private val observable = FlexibleGridObservable()
 
         val pageCount: Int
@@ -666,10 +673,9 @@ class FlexibleGridView @JvmOverloads constructor(
             }
         }
 
-        fun toPage(page: Int) {
-            notifyDataSetChange()
-        }
-
+        /**
+         * todo 后续可优化差量更新
+         * */
         fun submitData(list: List<T>) {
             data.clear()
             data.addAll(list)
@@ -714,7 +720,7 @@ class FlexibleGridView @JvmOverloads constructor(
         fun onLongPress(positionInPage: Int)
     }
 
-    interface IDataWrapper {
+    interface IDataStation {
         /**
          * @param position 真实的位置，非当页position
          * */

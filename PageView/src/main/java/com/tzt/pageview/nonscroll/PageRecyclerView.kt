@@ -208,6 +208,10 @@ class PageRecyclerView @JvmOverloads constructor(
         return true
     }
 
+    override fun to(page: Int): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override fun previous(): Boolean {
         var current = currentPage
         if (current == 0 && !isLooper) {

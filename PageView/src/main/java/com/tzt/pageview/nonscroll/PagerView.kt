@@ -23,6 +23,7 @@ interface PagerView {
     }
     /**
      * 当前页
+     * from 0 to (pageCount - 1)
      * */
     val currentPage: Int
 
@@ -47,6 +48,13 @@ interface PagerView {
      * @return 切换成功返回true，否则false
      */
     fun next(): Boolean
+
+    /**
+     * 指定页
+     * @param page :from 1 to pageCount
+     * @return 切换成功返回true，否则false
+     * */
+    fun to(page: Int): Boolean
 
     /**
      * 添加页码改变监听器

@@ -8,12 +8,6 @@ import android.graphics.Paint
  * @Date 2025/10/16 20:18
  */
 
-fun Paint.getBaseline(): Float {
-    return fontMetrics.let {
-        (it.descent - it.ascent) / 2 - it.descent
-    }
-}
-
 fun String.clipMeasureInfo(paint: Paint, validWidth: Float): MeasureInfo {
     val addition = "..."
     var result = this
