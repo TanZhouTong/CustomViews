@@ -276,7 +276,7 @@ class FlexibleGridView @JvmOverloads constructor(
 
             // 2. draw 外框
             canvasCache.drawRoundRect(
-                coverRectCache[index],
+                coverRect,
                 itemCornerDimension,
                 itemCornerDimension,
                 strokePaint
