@@ -55,28 +55,36 @@ class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
         pagerIndicator.setupWithPagerView(flexibleGridView)
     }
 
-    override fun onSingleTapUp(positionInPage: Int) {
-        Log.d(TAG, "OnClick...$positionInPage")
+    var count = 0
+    override fun onSingleTapUp(position: Int) {
+        Log.d(TAG, "OnClick...$position")
+        // 测试局部刷新
+        (flexibleGridView.adapter as? FlexibleAdapter)?.notifyPositionDataChange(
+            position,
+            FlexibleItem("局部刷新: ${count++}")
+        )
+
+        // 测试新的adapter
+        flexibleGridView.adapter =
+            FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
+                for (i in 0..80) {
+                    add(FlexibleItem("add:$i"))
+                }
+            }, rows, columns, this)
+    }
+
+    override fun onLongPress(position: Int) {
+        Log.d(TAG, "onLongPress...$position")
         rows++
         columns++
-        flexibleGridView.adapter =
+        /*flexibleGridView.adapter =
             FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
                 for (i in 0..100) {
                     if (i % 10 == 0) add(FlexibleItem(""))
                     else add(FlexibleItem("item:$i"))
                 }
-            }, rows, columns, this)
-    }
-
-    override fun onLongPress(positionInPage: Int) {
-        Log.d(TAG, "onLongPress...$positionInPage")
-        rows--
-        columns--
-        flexibleGridView.adapter =
-            FlexibleAdapter(requireActivity(), mutableListOf<FlexibleItem>().apply {
-                for (i in 0..100) {
-                    add(FlexibleItem("item:$i"))
-                }
-            }, rows, columns, this)
+            }, rows, columns, this)*/
+        // 测试行列修改
+        (flexibleGridView.adapter as? FlexibleAdapter)?.notifyConfigurationChange(rows, columns)
     }
 }

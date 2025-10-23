@@ -17,11 +17,11 @@ import android.view.View
 import com.tzt.pageview.R
 import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.toRect
 import androidx.core.graphics.withSave
 import com.tzt.pageview.nonscroll.ListPager
 import com.tzt.pageview.nonscroll.PagerView
 import com.tzt.pageview.nonscroll.Utils
-import java.lang.IllegalStateException
 import kotlin.math.abs
 
 /**
@@ -46,6 +46,14 @@ class FlexibleGridView @JvmOverloads constructor(
     val mObserver: FlexibleGridDataSetObserver = object : FlexibleGridDataSetObserver() {
         override fun onChanged() {
             reloadUiWithDataChange()
+        }
+
+        override fun onPositionChanged(position: Int) {
+            reloadUiWithDataChange(position)
+        }
+
+        override fun onConfigurationChange(oldItemsInPage: Int) {
+            reloadUiWithConfigurationChange(oldItemsInPage, reSort = false)
         }
     }
 
@@ -97,6 +105,8 @@ class FlexibleGridView @JvmOverloads constructor(
 
     lateinit var canvasCache: Canvas    // 离屏canvas
     lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
+
+    var scaleMode = ScaleMode.ObeyPosition
 
     init {
         // 这里获取相关属性数据 attrs解析
@@ -185,7 +195,6 @@ class FlexibleGridView @JvmOverloads constructor(
             color = Color.BLACK
             isAntiAlias = true
             isFilterBitmap = true
-            /*textAlign = Paint.Align.CENTER*/
         }
 
         isClickable = true
@@ -197,7 +206,7 @@ class FlexibleGridView @JvmOverloads constructor(
         Log.d(TAG, "onSizeChanged -> width: $w, height: $h")
         // 保留所测量的item相关size数据，字体相关size数据
         // view初次创建时adapter还没有，直接返回，后续size变化时会触发
-        if (adapter == null || adapter!!.rows <= 0 || adapter!!.columns <= 0) {
+        if (adapter == null || adapter!!.itemsInPage <= 0) {
             Log.w(
                 TAG,
                 "onSizeChanged() error with -> adapter: $adapter, rows: $rows, columns: $columns"
@@ -364,27 +373,42 @@ class FlexibleGridView @JvmOverloads constructor(
         }
     }
 
-    private fun reloadUiWithAdapterInit() {
+    private fun reloadUiWithAdapterInit(oldItemsInPage: Int) {
         // 确保当前view的大小已确定
-        // TODO: restore page data?
+        // TODO: restore page data? updateIndicatorAndInvalidate(oldItemsInPage)
         Log.d(TAG, "reloadUiWithAdapterInit() invoke")
         post {
-            reloadUiWithConfigurationChange()
+            reloadUiWithConfigurationChange(oldItemsInPage, true)
         }
     }
 
     // 不需要重新加载数据，数据没有变化，但是样式的相关参数变了(rows, columns, viewSize(不考虑)), itemWidth、rect也需要重新计算
-    private fun reloadUiWithConfigurationChange() {
+    /**
+     * @param reSort 是否重新排序布局, if true: currentPage从0开始，展示第一页，否则根据scaleMode进行
+     * */
+    private fun reloadUiWithConfigurationChange(oldItemsInPage: Int, reSort: Boolean) {
         Log.d(TAG, "reloadUiWithConfigurationChange() invoke")
         calculateItemProperty()
         calculateRect()
-        invalidate()
+        updateIndicatorAndInvalidate(oldItemsInPage, reSort = reSort)
+        //invalidate()
     }
 
     // 刷新ui,数据变化导致的ui刷新
     private fun reloadUiWithDataChange() {
         Log.d(TAG, "reloadUiWithDataChange() invoke")
         invalidate()
+    }
+
+    private fun reloadUiWithDataChange(position: Int) {
+        // 如果position在当前页时（可见）才刷新，否则忽略
+        val page = adapter!!.getPageWithPosition(position)
+        if (currentPage == page) {
+            val offset = position % adapter!!.itemsInPage
+            invalidate(itemRectCache[offset].toRect())
+        } else {
+            Log.d(TAG, "reloadUiWithDataChange -> $position is invisible, skip refresh ui")
+        }
     }
 
     /**计算部分**/
@@ -540,15 +564,14 @@ class FlexibleGridView @JvmOverloads constructor(
     // rows / columns的改动都改这
     var adapter: Adapter<*>? = null    // 如果adapter为null时，默认作为还没有数据
         set(value) {
+            val oldItemsInPage = field?.itemsInPage ?: 0
             field?.unRegisterObserver(mObserver)
             field = value
             if (value == null) {
                 throw IllegalArgumentException("setAdapter() is null")
             } else {
                 value.registerObserver(mObserver)
-                // 总页数修改
-                notifyPageCountChanged(pageCount)
-                reloadUiWithAdapterInit()
+                reloadUiWithAdapterInit(oldItemsInPage)
                 // 相关翻页信息也需更新
             }
         }
@@ -583,9 +606,7 @@ class FlexibleGridView @JvmOverloads constructor(
                 notifyPageChange(field, old)
             }
         }
-        get() {
-            return if (field >= pageCount) pageCount - 1 else field
-        }
+
     override var isLooper = true
 
     override val pageCount: Int
@@ -621,6 +642,35 @@ class FlexibleGridView @JvmOverloads constructor(
         return true
     }
 
+    /**
+     * page数据需要变动时
+     * */
+    private fun updateIndicatorAndInvalidate(oldItemsInPage: Int, reSort: Boolean = true) {
+        notifyPageCountChanged(pageCount)
+        if (reSort) {
+            currentPage = 0
+            return
+        }
+        // currentPage设置会触发onDraw绘制，这里存在部分的耦合
+        val oldPage = currentPage
+        currentPage = when (scaleMode) {
+            ScaleMode.ObeyPosition -> {
+                //adapter!!.getPageWithPosition(currentPage * oldItemsInPage)
+                // 存在新设置的adapter数据集变化，会使items position/ totalSize变化,防止越界
+                val position = oldPage * oldItemsInPage
+                adapter!!.getPageWithPosition(position.coerceAtMost(adapter!!.totalSize - 1))
+            }
+
+            ScaleMode.ObeyPage -> {
+                oldPage
+            }
+
+            else -> {
+                throw UnsupportedOperationException("ScaleMode unknown type")
+            }
+        }
+    }
+
     override fun addOnPageChangeListener(listener: PagerView.OnPageChangeListener) {
         synchronized(pageChangeListeners) {
             if (pageChangeListeners.contains(listener)) return
@@ -650,6 +700,7 @@ class FlexibleGridView @JvmOverloads constructor(
         }
     }
 
+    // page总数变更
     private fun notifyPageCountChanged(pageCount: Int) {
         synchronized(pageChangeListeners) {
             pageChangeListeners.forEach {
@@ -661,11 +712,20 @@ class FlexibleGridView @JvmOverloads constructor(
     // 建立一个adapter进行对数据的管理以及业务逻辑的控制
     abstract class Adapter<T>(
         val data: MutableList<T>,
-        val rows: Int,
-        val columns: Int,
+        rows: Int,
+        columns: Int,
         val clickCallback: IClickCallback? = null,
     ) : IDataStation, ListPager {
         private val observable = FlexibleGridObservable()
+
+        var rows: Int = rows
+            private set(value) {
+                field = value
+            }
+        var columns: Int = columns
+            private set(value) {
+                field = value
+            }
 
         val pageCount: Int
             get() {
@@ -693,7 +753,7 @@ class FlexibleGridView @JvmOverloads constructor(
         }
 
         /**
-         * @param position the real position in data, from 0 to ...
+         * @param position the real position in data, from 0 to totalSize
          * */
         override fun getPageWithPosition(position: Int): Int {
             if (totalSize == 0) return 0
@@ -732,6 +792,24 @@ class FlexibleGridView @JvmOverloads constructor(
             observable.notifyDataChange()
         }
 
+        /**
+         * 修改行/列值，触发ui更新
+         * */
+        fun notifyConfigurationChange(rows: Int, columns: Int) {
+            val oldItemsInPage = this.rows * this.columns
+            this.rows = rows
+            this.columns = columns
+            observable.notifyConfigurationChange(oldItemsInPage)
+        }
+
+        /**
+         * 局部绘制
+         * */
+        fun notifyPositionDataChange(position: Int, item: T) {
+            data[position] = item
+            observable.notifyPositionDataChange(position)
+        }
+
         fun registerObserver(observer: FlexibleGridDataSetObserver) {
             observable.registerObserver(observer)
         }
@@ -748,6 +826,18 @@ class FlexibleGridView @JvmOverloads constructor(
                 it.onChanged()
             }
         }
+
+        fun notifyPositionDataChange(position: Int) {
+            mObservers.forEach {
+                it.onPositionChanged(position)
+            }
+        }
+
+        fun notifyConfigurationChange(oldItemsInPage: Int) {
+            mObservers.forEach {
+                it.onConfigurationChange(oldItemsInPage)
+            }
+        }
     }
 
     /**
@@ -755,15 +845,29 @@ class FlexibleGridView @JvmOverloads constructor(
      * */
     abstract class FlexibleGridDataSetObserver {
         abstract fun onChanged()
+
+        /**
+         * @param position 真实的position，并非当前页偏移
+         * */
+        abstract fun onPositionChanged(position: Int)
+
+        /**
+         * 行列数据变化后相关
+         * @param oldItemsInPage 变化前的一页容量
+         * */
+        abstract fun onConfigurationChange(oldItemsInPage: Int)
     }
 
     /**
      * 点击相关
      * */
     interface IClickCallback {
-        fun onSingleTapUp(positionInPage: Int)
+        /**
+         * @param position real position in data set, from 0 to totalSize
+         * */
+        fun onSingleTapUp(position: Int)
 
-        fun onLongPress(positionInPage: Int)
+        fun onLongPress(position: Int)
     }
 
     interface IDataStation {
@@ -789,4 +893,14 @@ class FlexibleGridView @JvmOverloads constructor(
         val src: Bitmap? = null,
         val ext: String? = null,
     )
+
+    /**
+     * 当尺寸变化时（rows/columns）,变化后的数据显示根据何种模式来显示
+     * ObeyPosition: 根据变化前的第一个元素，变化后依然是第一个元素
+     * ObeyPage: 根据变化前的当前页数，变化后依然是此页数，除非超过最大页数
+     * */
+    sealed class ScaleMode {
+        object ObeyPosition : ScaleMode()
+        object ObeyPage : ScaleMode()
+    }
 }
