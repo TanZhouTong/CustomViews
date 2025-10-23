@@ -54,7 +54,7 @@ interface PagerView {
      * @param page :from 1 to pageCount
      * @return 切换成功返回true，否则false
      * */
-    fun to(page: Int): Boolean
+    //fun to(page: Int): Boolean
 
     /**
      * 添加页码改变监听器

@@ -618,16 +618,6 @@ class FlexibleGridView @JvmOverloads constructor(
         return true
     }
 
-    override fun to(page: Int): Boolean {
-        // 转化为index
-        var expect = page - 1
-        if (expect >= pageCount || expect < 0) {
-            return false
-        }
-        currentPage = expect
-        return true
-    }
-
     override fun addOnPageChangeListener(listener: PagerView.OnPageChangeListener) {
         synchronized(pageChangeListeners) {
             if (pageChangeListeners.contains(listener)) return
