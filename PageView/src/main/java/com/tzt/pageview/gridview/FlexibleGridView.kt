@@ -18,7 +18,9 @@ import com.tzt.pageview.R
 import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withSave
+import com.tzt.pageview.nonscroll.ListPager
 import com.tzt.pageview.nonscroll.PagerView
+import com.tzt.pageview.nonscroll.Utils
 import java.lang.IllegalStateException
 import kotlin.math.abs
 
@@ -52,39 +54,6 @@ class FlexibleGridView @JvmOverloads constructor(
     val rtRectCache: MutableList<RectF> = mutableListOf()       // 子item 右上角预留的rect，绘制bitmap
     val rbRectCache: MutableList<RectF> = mutableListOf()       // 子item 右下角rect，用户文件状态描述
     val ltRectCache: MutableList<RectF> = mutableListOf()       // 子item 左上角预留的rect，内容待定
-
-    var adapter: Adapter<*>? = null    // 如果adapter为null时，默认作为还没有数据
-        set(value) {
-            field?.unRegisterObserver(mObserver)
-            field = value
-            if (value == null) {
-                throw IllegalArgumentException("setAdapter() is null")
-            } else {
-                value.registerObserver(mObserver)
-                // 总页数修改
-                notifyPageCountChanged(pageCount)
-                reloadUiWithAdapterInit()
-                // 相关翻页信息也需更新
-            }
-        }
-    private var rows: Int = INVALID
-        get() {
-            return if (adapter == null) {
-                Log.e(TAG, "adapter need set at first when get [rows]")
-                INVALID
-            } else {
-                adapter!!.rows
-            }
-        }
-    private var columns: Int = INVALID
-        get() {
-            return if (adapter == null) {
-                Log.e(TAG, "adapter need set at first when get [columns]")
-                INVALID
-            } else {
-                adapter!!.columns
-            }
-        }
 
     // attrs
     var coverWidthAttr: Float = 0f
@@ -568,6 +537,40 @@ class FlexibleGridView @JvmOverloads constructor(
 
     private val pageChangeListeners by lazy { arrayListOf<PagerView.OnPageChangeListener>() }
 
+    // rows / columns的改动都改这
+    var adapter: Adapter<*>? = null    // 如果adapter为null时，默认作为还没有数据
+        set(value) {
+            field?.unRegisterObserver(mObserver)
+            field = value
+            if (value == null) {
+                throw IllegalArgumentException("setAdapter() is null")
+            } else {
+                value.registerObserver(mObserver)
+                // 总页数修改
+                notifyPageCountChanged(pageCount)
+                reloadUiWithAdapterInit()
+                // 相关翻页信息也需更新
+            }
+        }
+    private var rows: Int = INVALID
+        get() {
+            return if (adapter == null) {
+                Log.e(TAG, "adapter need set at first when get [rows]")
+                INVALID
+            } else {
+                adapter!!.rows
+            }
+        }
+    private var columns: Int = INVALID
+        get() {
+            return if (adapter == null) {
+                Log.e(TAG, "adapter need set at first when get [columns]")
+                INVALID
+            } else {
+                adapter!!.columns
+            }
+        }
+
     // 保持currentPage
     override var currentPage: Int = 0
         set(value) {
@@ -661,7 +664,7 @@ class FlexibleGridView @JvmOverloads constructor(
         val rows: Int,
         val columns: Int,
         val clickCallback: IClickCallback? = null,
-    ) : IDataStation {
+    ) : IDataStation, ListPager {
         private val observable = FlexibleGridObservable()
 
         val pageCount: Int
@@ -669,7 +672,7 @@ class FlexibleGridView @JvmOverloads constructor(
                 return totalSize / itemsInPage + if (totalSize % itemsInPage == 0) 0 else 1
             }
 
-        val itemsInPage: Int
+        override val itemsInPage: Int
             get() {
                 return rows * columns
             }
@@ -678,6 +681,27 @@ class FlexibleGridView @JvmOverloads constructor(
             get() {
                 return data.size
             }
+
+        /**
+         * @param page from 0 to pageCount - 1
+         * */
+        override fun getFirstPositionInPage(page: Int): Int {
+            if (page < 0 || page >= pageCount) {
+                throw Utils.indexError("Position", page, pageCount)
+            }
+            return page * itemsInPage
+        }
+
+        /**
+         * @param position the real position in data, from 0 to ...
+         * */
+        override fun getPageWithPosition(position: Int): Int {
+            if (totalSize == 0) return 0
+            if (position < 0 || position >= totalSize) {
+                throw Utils.indexError("Position", position, totalSize)
+            }
+            return position / itemsInPage
+        }
 
         fun getCurrentPageData(currentPage: Int): List<T> {
             Log.d(
