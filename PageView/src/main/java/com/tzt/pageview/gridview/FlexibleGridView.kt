@@ -597,8 +597,11 @@ class FlexibleGridView @JvmOverloads constructor(
     // 保持currentPage
     override var currentPage: Int = 0
         set(value) {
+            if (value >= pageCount || value < 0) {
+                Log.e(TAG, "currentPage error with: $value, pageCount is $pageCount")
+                return
+            }
             val old = field
-            //val expect = if (value >= pageCount) pageCount - 1 else value
             field = value
             // 页面数据修改
             adapter?.let {
