@@ -43,7 +43,7 @@ class FlexibleGridView @JvmOverloads constructor(
     /**
      * 后续去掉得了
      * */
-    val mObserver: FlexibleGridDataSetObserver = object : FlexibleGridDataSetObserver() {
+    private val mObserver: FlexibleGridDataSetObserver = object : FlexibleGridDataSetObserver() {
         override fun onChanged() {
             reloadUiWithDataChange()
         }
@@ -57,54 +57,54 @@ class FlexibleGridView @JvmOverloads constructor(
         }
     }
 
-    val itemRectCache: MutableList<RectF> = mutableListOf()     // 各子item的rect
-    val coverRectCache: MutableList<RectF> = mutableListOf()    // 子item cover背景的rect
-    val rtRectCache: MutableList<RectF> = mutableListOf()       // 子item 右上角预留的rect，绘制bitmap
-    val rbRectCache: MutableList<RectF> = mutableListOf()       // 子item 右下角rect，用户文件状态描述
-    val ltRectCache: MutableList<RectF> = mutableListOf()       // 子item 左上角预留的rect，内容待定
+    private val itemRectCache: MutableList<RectF> = mutableListOf()     // 各子item的rect
+    private val coverRectCache: MutableList<RectF> = mutableListOf()    // 子item cover背景的rect
+    private val rtRectCache: MutableList<RectF> = mutableListOf()       // 子item 右上角预留的rect，绘制bitmap
+    private val rbRectCache: MutableList<RectF> = mutableListOf()       // 子item 右下角rect，用户文件状态描述
+    private val ltRectCache: MutableList<RectF> = mutableListOf()       // 子item 左上角预留的rect，内容待定
 
     // attrs
-    var coverWidthAttr: Float = 0f
-    var coverHeightAttr: Float = 0f
-    var rtSizeAttr: Float = 0f
-    var itemMinXGap: Float = 0f
-    var itemMinYGap: Float = 0f
-    var itemCornerDimension: Float = 0f
-    var rtMarginTopDimension: Float = 0f
-    var rtMarginRightDimension: Float = 0f
-    var rbTextSizeDimension: Float = 0f
-    var rbMarginVerticalDimension: Float = 0f
-    var rbMarginHorizontalDimension: Float = 0f
-    var rbBackgroundColor: Int = 0  // 背景色
-    var rbTitleTextColor: Int = 0 // 前景色
-    var titleTextSizeDimension: Float = 0f
-    var titleTextAlignment: Int = 0
+    private var coverWidthAttr: Float = 0f
+    private var coverHeightAttr: Float = 0f
+    private var rtSizeAttr: Float = 0f
+    private var itemMinXGap: Float = 0f
+    private var itemMinYGap: Float = 0f
+    private var itemCornerDimension: Float = 0f
+    private var rtMarginTopDimension: Float = 0f
+    private var rtMarginRightDimension: Float = 0f
+    private var rbTextSizeDimension: Float = 0f
+    private var rbMarginVerticalDimension: Float = 0f
+    private var rbMarginHorizontalDimension: Float = 0f
+    private var rbBackgroundColor: Int = 0  // 背景色
+    private var rbTitleTextColor: Int = 0 // 前景色
+    private var titleTextSizeDimension: Float = 0f
+    private var titleTextAlignment: Int = 0
 
     // property
-    var itemWidth = 0f
-    var itemHeight = 0f
-    var coverWidth = 0f
-    var coverHeight = 0f
+    private var itemWidth = 0f
+    private var itemHeight = 0f
+    private var coverWidth = 0f
+    private var coverHeight = 0f
 
-    var rtSize = 0f
+    private var rtSize = 0f
 
-    var xGap = 0f
-    var yGap = 0f
+    private var xGap = 0f
+    private var yGap = 0f
 
     // text 基线，相对于item的distance
-    var rbBaseline = 0f
-    var titleBaseline = 0f
+    private var rbBaseline = 0f
+    private var titleBaseline = 0f
 
     // tool
-    lateinit var strokePaint: Paint
-    lateinit var rbTextPaint: Paint
-    lateinit var titlePaint: Paint
-    lateinit var bitmapPaint: Paint
-    lateinit var rtBitmapPaint: Paint
-    lateinit var rbBackgroundPaint: Paint
+    private lateinit var strokePaint: Paint
+    private lateinit var rbTextPaint: Paint
+    private lateinit var titlePaint: Paint
+    private lateinit var bitmapPaint: Paint
+    private lateinit var rtBitmapPaint: Paint
+    private lateinit var rbBackgroundPaint: Paint
 
-    lateinit var canvasCache: Canvas    // 离屏canvas
-    lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
+    private lateinit var canvasCache: Canvas    // 离屏canvas
+    private lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
 
     var scaleMode = ScaleMode.ObeyPosition
 
@@ -496,15 +496,15 @@ class FlexibleGridView @JvmOverloads constructor(
         } ?: throw IllegalStateException("please ensure the FlexibleGridView adapter init [X]")
     }
 
-    val pagingTouchSlop = 16f
-    var downX = -1f
-    var downY = -1f
-    var deltaX = 0f
-    var deltaY = 0f
-    var isScroll = false
+    private val pagingTouchSlop = 16f
+    private var downX = -1f
+    private var downY = -1f
+    private var deltaX = 0f
+    private var deltaY = 0f
+    private var isScroll = false
 
     // 手势识别，用来检测相关操作及回调
-    val gestureDetector: GestureDetector =
+    private val gestureDetector: GestureDetector =
         GestureDetector(context, object : GestureDetector.OnGestureListener {
             override fun onDown(e: MotionEvent): Boolean {
                 downX = e.x

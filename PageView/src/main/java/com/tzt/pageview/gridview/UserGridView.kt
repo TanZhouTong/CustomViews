@@ -9,8 +9,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
-import android.graphics.drawable.Drawable
-import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
@@ -45,7 +43,7 @@ class UserGridView @JvmOverloads constructor(
     /**
      * 后续去掉得了
      * */
-    val mObserver: FlexibleGridDataSetObserver = object : FlexibleGridDataSetObserver() {
+    private val mObserver: FlexibleGridDataSetObserver = object : FlexibleGridDataSetObserver() {
         override fun onChanged() {
             reloadUiWithDataChange()
         }
@@ -59,61 +57,61 @@ class UserGridView @JvmOverloads constructor(
         }
     }
 
-    val itemRectCache: MutableList<RectF> = mutableListOf()     // 各子item的rect
-    val coverRectCache: MutableList<RectF> = mutableListOf()    // 子item cover背景的rect
-    val iconRectCache: MutableList<RectF> = mutableListOf()     // 中部icon图标的rect
-    val bottomRectCache: MutableList<RectF> = mutableListOf()   // 底部包括avatar、用户名的rect
-    val avatarRectCache: MutableList<RectF> = mutableListOf()   // 底部avatar的rect
+    private val itemRectCache: MutableList<RectF> = mutableListOf()     // 各子item的rect
+    private val coverRectCache: MutableList<RectF> = mutableListOf()    // 子item cover背景的rect
+    private val iconRectCache: MutableList<RectF> = mutableListOf()     // 中部icon图标的rect
+    private val bottomRectCache: MutableList<RectF> = mutableListOf()   // 底部包括avatar、用户名的rect
+    private val avatarRectCache: MutableList<RectF> = mutableListOf()   // 底部avatar的rect
 
     // attrs
-    var coverWidthAttr: Float = 0f
-    var coverHeightAttr: Float = 0f
-    var itemMinXGap: Float = 0f
-    var itemMinYGap: Float = 0f
-    var itemCornerDimension: Float = 0f
-    var titleTextSizeDimension: Float = 0f
-    var titleTextAlignment: Int = 0
+    private var coverWidthAttr: Float = 0f
+    private var coverHeightAttr: Float = 0f
+    private var itemMinXGap: Float = 0f
+    private var itemMinYGap: Float = 0f
+    private var itemCornerDimension: Float = 0f
+    private var titleTextSizeDimension: Float = 0f
+    private var titleTextAlignment: Int = 0
 
     // 独立的attrs
-    var borderColor: Int = 0
-    var borderWidth: Float = 0f
-    var iconSizeWeight: Float = 0f
-    var avatarSizeAttr: Float = 0f
-    var avatarMarginStart: Float = 0f
-    var avatarVerticalMargin: Float = 0f
-    var subTitleTextSize: Float = 0f
-    var subTitleMarginStart: Float = 0f
-    var subTitleHint: String = "***"
+    private var borderColor: Int = 0
+    private var borderWidth: Float = 0f
+    private var iconSizeWeight: Float = 0f
+    private var avatarSizeAttr: Float = 0f
+    private var avatarMarginStart: Float = 0f
+    private var avatarVerticalMargin: Float = 0f
+    private var subTitleTextSize: Float = 0f
+    private var subTitleMarginStart: Float = 0f
+    private var subTitleHint: String = "***"
 
 
     // property
-    var itemWidth = 0f
-    var itemHeight = 0f
-    var coverWidth = 0f
-    var coverHeight = 0f
+    private var itemWidth = 0f
+    private var itemHeight = 0f
+    private var coverWidth = 0f
+    private var coverHeight = 0f
 
     // icon图标的大小
-    var iconSize = 0f
-    var avatarSize: Float = 0f
+    private var iconSize = 0f
+    private var avatarSize: Float = 0f
 
     // bottomHeight 头像和用户名这一栏的高度
-    var bottomHeight = 0f
+    private var bottomHeight = 0f
 
-    var xGap = 0f
-    var yGap = 0f
+    private var xGap = 0f
+    private var yGap = 0f
 
     // text 基线，相对于item的distance
-    var subTitleBaseline = 0f
-    var titleBaseline = 0f
+    private var subTitleBaseline = 0f
+    private var titleBaseline = 0f
 
     // tool
-    lateinit var strokePaint: Paint
-    lateinit var titlePaint: Paint
-    lateinit var subTitlePaint: Paint   // 会根据具体数据变化属性（color）
-    lateinit var bitmapPaint: Paint
+    private lateinit var strokePaint: Paint
+    private lateinit var titlePaint: Paint
+    private lateinit var subTitlePaint: Paint   // 会根据具体数据变化属性（color）
+    private lateinit var bitmapPaint: Paint
 
-    lateinit var canvasCache: Canvas    // 离屏canvas
-    lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
+    private lateinit var canvasCache: Canvas    // 离屏canvas
+    private lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
 
     var scaleMode = ScaleMode.ObeyPosition
 
@@ -305,12 +303,11 @@ class UserGridView @JvmOverloads constructor(
 
 
             // 5. 画subTitle字体
-            subTitleHint
             val subTitleValidWidth =
                 coverWidth - itemCornerDimension * 2 - avatarMarginStart - avatarSize - subTitleMarginStart
             val subTitleLeft =
                 coverRect.left + itemCornerDimension + avatarMarginStart + avatarSize + subTitleMarginStart
-            val subTitleText = adapter!!.getSubTitleText(realPosition)
+            val subTitleText = adapter!!.getUsername(realPosition)
             (subTitleText ?: subTitleHint)
                 .clipMeasureInfo(subTitlePaint, subTitleValidWidth).let {
                     drawText(
@@ -520,15 +517,15 @@ class UserGridView @JvmOverloads constructor(
         } ?: throw IllegalStateException("please ensure the FlexibleGridView adapter init [X]")
     }
 
-    val pagingTouchSlop = 16f
-    var downX = -1f
-    var downY = -1f
-    var deltaX = 0f
-    var deltaY = 0f
-    var isScroll = false
+    private val pagingTouchSlop = 16f
+    private var downX = -1f
+    private var downY = -1f
+    private var deltaX = 0f
+    private var deltaY = 0f
+    private var isScroll = false
 
     // 手势识别，用来检测相关操作及回调
-    val gestureDetector: GestureDetector =
+    private val gestureDetector: GestureDetector =
         GestureDetector(context, object : GestureDetector.OnGestureListener {
             override fun onDown(e: MotionEvent): Boolean {
                 downX = e.x
@@ -916,7 +913,10 @@ class UserGridView @JvmOverloads constructor(
 
         fun getTitleText(position: Int): String
 
-        fun getSubTitleText(position: Int): String?
+        /**
+         * @return 如果没有登录时为null，否则不允许为null
+         * */
+        fun getUsername(position: Int): String?
     }
 
     /**

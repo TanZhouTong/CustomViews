@@ -59,7 +59,7 @@ class UserAdapter(
         return data[position].name
     }
 
-    override fun getSubTitleText(position: Int): String? {
+    override fun getUsername(position: Int): String? {
         return data[position].accountInfo?.username
     }
 }
