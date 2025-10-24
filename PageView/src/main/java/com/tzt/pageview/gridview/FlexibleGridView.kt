@@ -387,7 +387,7 @@ class FlexibleGridView @JvmOverloads constructor(
      * @param reSort 是否重新排序布局, if true: currentPage从0开始，展示第一页，否则根据scaleMode进行
      * */
     private fun reloadUiWithConfigurationChange(oldItemsInPage: Int, reSort: Boolean) {
-        Log.d(TAG, "reloadUiWithConfigurationChange() invoke")
+        Log.d(TAG, "reloadUiWithConfigurationChange() invoke -> reSort: $reSort")
         calculateItemProperty()
         calculateRect()
         updateIndicatorAndInvalidate(oldItemsInPage, reSort = reSort)
@@ -644,6 +644,7 @@ class FlexibleGridView @JvmOverloads constructor(
 
     /**
      * page数据需要变动时
+     * @param reSort 是否重新排序布局, if true: currentPage从0开始，展示第一页，否则根据scaleMode进行
      * */
     private fun updateIndicatorAndInvalidate(oldItemsInPage: Int, reSort: Boolean = true) {
         notifyPageCountChanged(pageCount)

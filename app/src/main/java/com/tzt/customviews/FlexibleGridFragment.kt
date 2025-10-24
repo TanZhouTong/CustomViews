@@ -53,6 +53,10 @@ class FlexibleGridFragment : Fragment(), FlexibleGridView.IClickCallback {
                 }
             }, rows, columns, this)
         pagerIndicator.setupWithPagerView(flexibleGridView)
+        // test currentPage
+        flexibleGridView.post {
+            flexibleGridView.currentPage = 4
+        }
     }
 
     var count = 0
