@@ -79,8 +79,8 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             com.tzt.customtoolbar.R.id.language_from, com.tzt.customtoolbar.R.id.language_to -> showPopupWindow(v)
             com.tzt.customtoolbar.R.id.language_replace -> swapLanguage()
             com.tzt.customtoolbar.R.id.translate_bt -> doTranslate()
-            R.id.bt_to_grid -> toGrid()
-            R.id.bt_to_linear -> toLinear()
+            R.id.bt_to_grid -> toGrid(0)
+            R.id.bt_to_linear -> toGrid(1)
         }
     }
 
@@ -119,8 +119,9 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         Log.d(TAG, "doTranslate execute...")
     }
 
-    private fun toGrid() {
+    private fun toGrid(type: Int) {
         val intent = Intent(this, PageViewActivity::class.java)
+        intent.putExtra("type", type)
         startActivity(intent)
     }
 

@@ -24,9 +24,16 @@ class PageViewActivity : AppCompatActivity() {
 
     private fun initView() {
         container = findViewById(R.id.fragment_container)
-        supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container, FlexibleGridFragment.getInstance())
-            .commit()
+        val type = intent.getIntExtra("type", 0)
+        if (type == 0) {
+            supportFragmentManager.beginTransaction()
+                .add(R.id.fragment_container, FlexibleGridFragment.getInstance())
+                .commit()
+        } else if(type == 1) {
+            supportFragmentManager.beginTransaction()
+                .add(R.id.fragment_container, UserGridFragment.getInstance())
+                .commit()
+        }
         Log.d(TAG, "initView")
     }
 

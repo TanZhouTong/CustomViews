@@ -25,15 +25,32 @@
         <attr name="indicatorLayout" format="reference" />
     </declare-styleable>
 
+    <!--公共属性-->
+    <attr name="coverWidth" format="dimension" />
+    <attr name="coverHeight" format="dimension" />
+    <attr name="itemHorizontalMinGap" format="dimension" /> <!--水平方向上最小的gap-->
+    <attr name="itemVerticalMinGap" format="dimension" />   <!--垂直方向上最小的gap-->
+    <attr name="circle" format="boolean" /> <!--翻页循环-->
+    <attr name="corner" format="dimension" />
+    <attr name="titleTextSize" format="dimension" /> <!--标题部分textSize-->
+    <attr name="titleTextAlign" format="flags"> <!--标题部分textSize-->
+        <flag name="left" value="0" />
+        <flag name="center" value="1" />
+        <flag name="right" value="2" />
+    </attr>
+
     <declare-styleable name="FlexibleGridView">
         <!--<attr name="rows" format="integer" />   &lt;!&ndash;默认行数&ndash;&gt;
         <attr name="columns" format="integer" /> &lt;!&ndash;默认列数&ndash;&gt;-->
-        <attr name="coverWidth" format="dimension" />
-        <attr name="coverHeight" format="dimension" />
-        <attr name="itemHorizontalMinGap" format="dimension" /> <!--水平方向上最小的gap-->
-        <attr name="itemVerticalMinGap" format="dimension" />   <!--垂直方向上最小的gap-->
-        <attr name="circle" format="boolean" /> <!--翻页循环-->
-        <attr name="corner" format="dimension" /> <!--标题部分textSize-->
+        <attr name="coverWidth" />
+        <attr name="coverHeight" />
+        <attr name="itemHorizontalMinGap" /> <!--水平方向上最小的gap-->
+        <attr name="itemVerticalMinGap" />   <!--垂直方向上最小的gap-->
+        <attr name="circle" /> <!--翻页循环-->
+        <attr name="corner" /> <!--背景圆角半径-->
+        <attr name="titleTextSize" /> <!--标题部分textSize-->
+        <attr name="titleTextAlign" /> <!--标题部分text对齐方式-->
+        <!--独立部分-->
         <attr name="rtSize" format="dimension" /> <!--右上部分元素的大小-->
         <attr name="rtMarginTop" format="dimension" /> <!--右上部分元素对上边界的margin-->
         <attr name="rtMarginRight" format="dimension" /> <!--右上部分元素对右边界的margin-->
@@ -42,11 +59,26 @@
         <attr name="rbMarginVertical" format="dimension" /> <!--右下部分对于所在rect的右边距-->
         <attr name="rbForegroundColor" format="color" /> <!--右下部分前景色（字体颜色）-->
         <attr name="rbBackgroundColor" format="color" /> <!--右下部分背景色-->
-        <attr name="titleTextSize" format="dimension" /> <!--标题部分textSize-->
-        <attr name="titleTextAlign"> <!--标题部分textSize-->
-            <flag name="left" value="0" />
-            <flag name="center" value="1" />
-            <flag name="right" value="2" />
-        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="UserGridView" parent="">
+        <attr name="coverWidth" />
+        <attr name="coverHeight" />
+        <attr name="itemHorizontalMinGap" /> <!--水平方向上最小的gap-->
+        <attr name="itemVerticalMinGap" />   <!--垂直方向上最小的gap-->
+        <attr name="circle" /> <!--翻页循环-->
+        <attr name="corner" /> <!--背景圆角半径-->
+        <attr name="titleTextSize" /> <!--标题部分textSize-->
+        <attr name="titleTextAlign" /> <!--标题部分text对齐方式-->
+        <!--独立部分-->
+        <attr name="borderColor" format="color" />      <!--边界颜色-->
+        <attr name="borderWidth" format="dimension" />      <!--边界大小-->
+        <attr name="iconSizeWeight" format="float" />     <!--中间图标部分的size对于itemWidth的占比-->
+        <attr name="avatarSize" format="dimension" />   <!--登录头像部分size-->
+        <attr name="avatarMarginStart" format="dimension" />    <!--头像icon左边距-->
+        <attr name="avatarVerticalMargin" format="dimension" /> <!--头像icon垂直边距-->
+        <attr name="subTitleTextSize" format="dimension" /> <!--用户名部分的textSize-->
+        <attr name="subTitleMarginStart" format="dimension" /> <!--用户名部分左边距-->
+        <attr name="subTitleHint" format="string" />
     </declare-styleable>
 </resources>

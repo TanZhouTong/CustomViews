@@ -9,6 +9,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.drawable.Drawable
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.util.Log
 import android.view.GestureDetector
@@ -29,7 +31,7 @@ import kotlin.math.abs
  * @Author tanzhoutong
  * @Date 2025/10/16 13:53
  */
-class FlexibleGridView @JvmOverloads constructor(
+class UserGridView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -59,26 +61,30 @@ class FlexibleGridView @JvmOverloads constructor(
 
     val itemRectCache: MutableList<RectF> = mutableListOf()     // 各子item的rect
     val coverRectCache: MutableList<RectF> = mutableListOf()    // 子item cover背景的rect
-    val rtRectCache: MutableList<RectF> = mutableListOf()       // 子item 右上角预留的rect，绘制bitmap
-    val rbRectCache: MutableList<RectF> = mutableListOf()       // 子item 右下角rect，用户文件状态描述
-    val ltRectCache: MutableList<RectF> = mutableListOf()       // 子item 左上角预留的rect，内容待定
+    val iconRectCache: MutableList<RectF> = mutableListOf()     // 中部icon图标的rect
+    val bottomRectCache: MutableList<RectF> = mutableListOf()   // 底部包括avatar、用户名的rect
+    val avatarRectCache: MutableList<RectF> = mutableListOf()   // 底部avatar的rect
 
     // attrs
     var coverWidthAttr: Float = 0f
     var coverHeightAttr: Float = 0f
-    var rtSizeAttr: Float = 0f
     var itemMinXGap: Float = 0f
     var itemMinYGap: Float = 0f
     var itemCornerDimension: Float = 0f
-    var rtMarginTopDimension: Float = 0f
-    var rtMarginRightDimension: Float = 0f
-    var rbTextSizeDimension: Float = 0f
-    var rbMarginVerticalDimension: Float = 0f
-    var rbMarginHorizontalDimension: Float = 0f
-    var rbBackgroundColor: Int = 0  // 背景色
-    var rbTitleTextColor: Int = 0 // 前景色
     var titleTextSizeDimension: Float = 0f
     var titleTextAlignment: Int = 0
+
+    // 独立的attrs
+    var borderColor: Int = 0
+    var borderWidth: Float = 0f
+    var iconSizeWeight: Float = 0f
+    var avatarSizeAttr: Float = 0f
+    var avatarMarginStart: Float = 0f
+    var avatarVerticalMargin: Float = 0f
+    var subTitleTextSize: Float = 0f
+    var subTitleMarginStart: Float = 0f
+    var subTitleHint: String = "***"
+
 
     // property
     var itemWidth = 0f
@@ -86,22 +92,25 @@ class FlexibleGridView @JvmOverloads constructor(
     var coverWidth = 0f
     var coverHeight = 0f
 
-    var rtSize = 0f
+    // icon图标的大小
+    var iconSize = 0f
+    var avatarSize: Float = 0f
+
+    // bottomHeight 头像和用户名这一栏的高度
+    var bottomHeight = 0f
 
     var xGap = 0f
     var yGap = 0f
 
     // text 基线，相对于item的distance
-    var rbBaseline = 0f
+    var subTitleBaseline = 0f
     var titleBaseline = 0f
 
     // tool
     lateinit var strokePaint: Paint
-    lateinit var rbTextPaint: Paint
     lateinit var titlePaint: Paint
+    lateinit var subTitlePaint: Paint   // 会根据具体数据变化属性（color）
     lateinit var bitmapPaint: Paint
-    lateinit var rtBitmapPaint: Paint
-    lateinit var rbBackgroundPaint: Paint
 
     lateinit var canvasCache: Canvas    // 离屏canvas
     lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
@@ -115,70 +124,67 @@ class FlexibleGridView @JvmOverloads constructor(
 
     @SuppressLint("PrivateResource")
     private fun init(attrs: AttributeSet?) {
-        context.withStyledAttributes(attrs, R.styleable.FlexibleGridView) {
+        context.withStyledAttributes(attrs, R.styleable.UserGridView) {
             // item
             coverWidthAttr = getDimension(
-                R.styleable.FlexibleGridView_coverWidth,
-                context.resources.getDimension(R.dimen.flexible_grid_view_default_item_width)
+                R.styleable.UserGridView_coverWidth,
+                context.resources.getDimension(R.dimen.user_grid_view_default_item_width)
             )
             coverHeightAttr = getDimension(
-                R.styleable.FlexibleGridView_coverHeight,
-                context.resources.getDimension(R.dimen.flexible_grid_view_default_item_height)
+                R.styleable.UserGridView_coverHeight,
+                context.resources.getDimension(R.dimen.user_grid_view_default_item_height)
             )
-            itemMinXGap = getDimension(R.styleable.FlexibleGridView_itemHorizontalMinGap, 0f)
-            itemMinYGap = getDimension(R.styleable.FlexibleGridView_itemVerticalMinGap, 0f)
-            isLooper = getBoolean(R.styleable.FlexibleGridView_circle, true)
+            itemMinXGap = getDimension(R.styleable.UserGridView_itemHorizontalMinGap, 0f)
+            itemMinYGap = getDimension(R.styleable.UserGridView_itemVerticalMinGap, 0f)
+            isLooper = getBoolean(R.styleable.UserGridView_circle, true)
             itemCornerDimension = getDimension(
-                R.styleable.FlexibleGridView_corner,
-                context.resources.getDimension(R.dimen.flexible_grid_view_default_corner_size)
+                R.styleable.UserGridView_corner,
+                context.resources.getDimension(R.dimen.user_grid_view_default_corner_size)
             )
-            // rt
-            rtSizeAttr = getDimension(
-                R.styleable.FlexibleGridView_rtSize,
-                context.resources.getDimension(R.dimen.flexible_grid_view_default_rt_size)
-            )
-            rtMarginTopDimension = getDimension(R.styleable.FlexibleGridView_rtMarginTop, 0f)
-            rtMarginRightDimension = getDimension(R.styleable.FlexibleGridView_rtMarginRight, 0f)
-            // rb
-            rbTextSizeDimension = getDimension(
-                R.styleable.FlexibleGridView_rbTextSize,
-                context.resources.getDimension(R.dimen.flexible_grid_view_default_rb_text_size)
-            )
-            rbMarginHorizontalDimension =
-                getDimension(R.styleable.FlexibleGridView_rbMarginHorizontal, 0f)
-            rbMarginVerticalDimension =
-                getDimension(R.styleable.FlexibleGridView_rbMarginVertical, 0f)
-            rbBackgroundColor = getColor(
-                R.styleable.FlexibleGridView_rbBackgroundColor,
-                context.resources.getColor(R.color.opacity_gray, null)
-            )
-            rbTitleTextColor = getColor(R.styleable.FlexibleGridView_rbForegroundColor, Color.WHITE)
             // title
             titleTextSizeDimension = getDimension(
-                R.styleable.FlexibleGridView_titleTextSize,
-                context.resources.getDimension(R.dimen.flexible_grid_view_default_title_text_size)
+                R.styleable.UserGridView_titleTextSize,
+                context.resources.getDimension(R.dimen.user_grid_view_default_title_text_size)
             )
             // 默认靠左
-            titleTextAlignment = getInteger(R.styleable.FlexibleGridView_titleTextAlign, 0)
+            titleTextAlignment = getInteger(R.styleable.UserGridView_titleTextAlign, 0)
+
+            // 独立部分
+            borderColor = getColor(R.styleable.UserGridView_borderColor, Color.BLACK)
+            borderWidth = getDimension(
+                R.styleable.UserGridView_borderWidth,
+                context.resources.getDimension(R.dimen.user_grid_view_default_border_width)
+            )
+            iconSizeWeight = getFloat(R.styleable.UserGridView_iconSizeWeight, 0.5f)
+            avatarSizeAttr = getDimension(
+                R.styleable.UserGridView_avatarSize,
+                context.resources.getDimension(R.dimen.user_grid_view_default_avatar_size)
+            )
+            avatarMarginStart = getDimension(
+                R.styleable.UserGridView_avatarMarginStart,
+                context.resources.getDimension(R.dimen.user_grid_view_default_avatar_margin_start)
+            )
+            avatarVerticalMargin = getDimension(
+                R.styleable.UserGridView_avatarVerticalMargin,
+                context.resources.getDimension(R.dimen.user_grid_view_default_avatar_vertical_margin)
+            )
+            subTitleTextSize = getDimension(
+                R.styleable.UserGridView_subTitleTextSize,
+                context.resources.getDimension(R.dimen.user_grid_view_default_sub_title_text_size)
+            )
+            subTitleMarginStart =
+                getDimension(
+                    R.styleable.UserGridView_subTitleMarginStart,
+                    context.resources.getDimension(R.dimen.user_grid_view_default_sub_title_text_size)
+                )
         }
 
         // paint
         strokePaint = Paint().apply {
-            strokeWidth = 1f
-            color = Color.BLACK
+            strokeWidth = borderWidth
+            color = borderColor
             style = Paint.Style.STROKE
             isAntiAlias = true
-        }
-        rbTextPaint = Paint().apply {
-            textAlign = Paint.Align.LEFT
-            isAntiAlias = true
-            color = rbTitleTextColor
-            textSize = rbTextSizeDimension
-        }
-        rbBackgroundPaint = Paint().apply {
-            isAntiAlias = true
-            color = rbBackgroundColor
-            style = Paint.Style.FILL
         }
         titlePaint = Paint().apply {
             textAlign = Paint.Align.LEFT
@@ -186,13 +192,14 @@ class FlexibleGridView @JvmOverloads constructor(
             color = Color.BLACK
             textSize = titleTextSizeDimension
         }
+        subTitlePaint = Paint().apply {
+            textAlign = Paint.Align.LEFT
+            isAntiAlias = true
+            color = Color.GRAY
+            textSize = subTitleTextSize
+        }
         bitmapPaint = Paint().apply {
             color = Color.WHITE
-            isAntiAlias = true
-            isFilterBitmap = true
-        }
-        rtBitmapPaint = Paint().apply {
-            color = Color.BLACK
             isAntiAlias = true
             isFilterBitmap = true
         }
@@ -253,7 +260,8 @@ class FlexibleGridView @JvmOverloads constructor(
                     )
                 }
                 clipPath(path)
-                val coverBitmap = adapter!!.getCoverBitmap(realPosition, coverWidth, coverHeight)
+                val coverBitmap =
+                    adapter!!.getCoverBitmap(realPosition, coverWidth, coverHeight)
                 if (coverBitmap == null) {
                     drawRect(coverRect, bitmapPaint)
                 } else {
@@ -266,66 +274,59 @@ class FlexibleGridView @JvmOverloads constructor(
                 }
             }
 
-            // 2. draw 外框
-            canvasCache.drawRoundRect(
-                coverRect,
+            val iconRect = iconRectCache[index]
+            // 2.draw icon
+            adapter!!.getIconBitmap(realPosition)?.let {
+                drawBitmap(it, null, iconRect, bitmapPaint)
+            }
+
+            // 2.1 draw avatar
+            val avatarRect = avatarRectCache[index]
+            adapter!!.getAvatarBitmap(realPosition)?.let {
+                drawBitmap(it, null, avatarRect, bitmapPaint)
+            }
+
+            // 3. draw 外框
+            drawRoundRect(
+                RectF(
+                    coverRect.left + borderWidth / 2,
+                    coverRect.top + borderWidth / 2,
+                    coverRect.right - borderWidth / 2,
+                    coverRect.bottom - borderWidth / 2
+                ),
                 itemCornerDimension,
                 itemCornerDimension,
                 strokePaint
             )
+            // 3.1 draw 内框
+            /*drawRect(bottomRectCache[index], strokePaint)*/
+            val bottomRect = bottomRectCache[index]
+            drawLine(bottomRect.left, bottomRect.top, bottomRect.right, bottomRect.top, strokePaint)
 
-            // 3. 画右上角select
-            val rtRect = rtRectCache[index]
-            val rtConfig = adapter!!.getRtConfig(realPosition)
-            if (rtConfig.need && rtConfig.src != null) {
-                canvasCache.drawBitmap(rtConfig.src, null, rtRect, rtBitmapPaint)
-            }
-            // 4. 画rb下载状态
-            val rbRect = rbRectCache[index]
-            val rbContent = adapter!!.getProgressDescriptions(realPosition)
-            if (rbContent.isNotEmpty()) {
-                // 4.1 先画背景
-                val rbTextWidth = rbTextPaint.measureText(rbContent)
-                val validWidth = rbRect.width() - 2 * rbMarginHorizontalDimension
-                var isFull = rbTextWidth >= validWidth
-                val clipMeasureInfo = rbContent.clipMeasureInfo(rbTextPaint, validWidth)
-                val textLeft =
-                    rbRect.width() - clipMeasureInfo.measureWidth - rbMarginHorizontalDimension
-                val backgroundRect =
-                    RectF(
-                        if (isFull) rbRect.left else rbRect.left + textLeft - rbMarginHorizontalDimension,
-                        rbRect.top,
-                        rbRect.right,
-                        rbRect.bottom
+
+            // 5. 画subTitle字体
+            subTitleHint
+            val subTitleValidWidth =
+                coverWidth - itemCornerDimension * 2 - avatarMarginStart - avatarSize - subTitleMarginStart
+            val subTitleLeft =
+                coverRect.left + itemCornerDimension + avatarMarginStart + avatarSize + subTitleMarginStart
+            val subTitleText = adapter!!.getSubTitleText(realPosition)
+            (subTitleText ?: subTitleHint)
+                .clipMeasureInfo(subTitlePaint, subTitleValidWidth).let {
+                    drawText(
+                        it.value,
+                        subTitleLeft,
+                        coverRect.top + subTitleBaseline,
+                        subTitlePaint.apply {
+                            color = if (subTitleText == null) Color.GRAY
+                            else Color.BLACK
+                        }
                     )
-                Path().apply {
-                    addRoundRect(
-                        backgroundRect,
-                        floatArrayOf(
-                            0f,
-                            0f,
-                            0f,
-                            0f,
-                            itemCornerDimension,
-                            itemCornerDimension,
-                            if (isFull) itemCornerDimension else 0f,
-                            if (isFull) itemCornerDimension else 0f
-                        ),
-                        Path.Direction.CW
-                    )
-                    canvasCache.drawPath(this, rbBackgroundPaint)
                 }
-                // 4.2 再画字体
-                canvasCache.drawText(
-                    clipMeasureInfo.value,
-                    rbRect.left + textLeft,
-                    itemRect.top + rbBaseline,
-                    rbTextPaint
-                )
-            }
-            // 5. 画title字体
+
+            // 5.1 画title字体
             val titleClipMeasureInfo = adapter!!.getTitleText(realPosition)
-                .clipMeasureInfo(titlePaint, itemRect.width())
+                .clipMeasureInfo(titlePaint, coverRect.width())
             val leftDistance = when (titleTextAlignment) {
                 0 -> { // left
                     0f
@@ -341,7 +342,7 @@ class FlexibleGridView @JvmOverloads constructor(
 
                 else -> throw IllegalArgumentException("unknown attr value: $titleTextAlignment of FlexibleGridView_titleTextAlign")
             }
-            canvasCache.drawText(
+            drawText(
                 titleClipMeasureInfo.value,
                 itemRect.left + leftDistance,
                 itemRect.top + titleBaseline,
@@ -437,9 +438,8 @@ class FlexibleGridView @JvmOverloads constructor(
         // cover的size数据
         coverWidth = coverWidthAttr / aspect
         coverHeight = coverHeightAttr / aspect
-
-        // 右上角的图标大小也需同步放缩
-        rtSize = rtSizeAttr / aspect
+        iconSize = coverWidth * iconSizeWeight
+        avatarSize = avatarSizeAttr / aspect
 
         // item的size数据
         itemWidth = coverWidth
@@ -453,9 +453,18 @@ class FlexibleGridView @JvmOverloads constructor(
             yGap = (mHeight - itemHeight * rows) / (rows - 1)
         }
 
-        // baseLine数据
+        // 取最大值
+        bottomHeight =
+            (avatarSize + avatarVerticalMargin * 2).coerceAtLeast(subTitlePaint.fontMetrics.let {
+                it.bottom - it.top
+            })
+        val subTitleTopGap =
+            (bottomHeight - subTitlePaint.fontMetrics.let { it.bottom - it.top }) / 2
+
+        // baseLine数据,title默认贴cover
         titleBaseline = coverHeight - titlePaint.fontMetrics.top
-        rbBaseline = coverHeight - rbTextPaint.fontMetrics.bottom
+        subTitleBaseline =
+            coverHeight - bottomHeight + subTitleTopGap - subTitlePaint.fontMetrics.top
     }
 
     // 计算并保存各rect数据，用户后续填充样式数据
@@ -463,9 +472,9 @@ class FlexibleGridView @JvmOverloads constructor(
         synchronized(this) {
             itemRectCache.clear()
             coverRectCache.clear()
-            rtRectCache.clear()
-            rbRectCache.clear()
-            ltRectCache.clear() // lt待定
+            iconRectCache.clear()
+            bottomRectCache.clear()
+            avatarRectCache.clear() // lt待定
         }
         if (rows == INVALID || columns == INVALID) {
             Log.e(TAG, "ensure adapter init [Y]")
@@ -476,16 +485,31 @@ class FlexibleGridView @JvmOverloads constructor(
             for (column in 0 until columns) {
                 val left = column * (itemWidth + xGap) + paddingStart
                 val top = row * (itemHeight + yGap) + paddingTop
-                val rtRight = left + itemWidth - rtMarginRightDimension
-                val rtTop = top + rtMarginTopDimension + paddingTop
-                val rtSize = rtSize
-                val rbTop =
-                    top + coverHeight - rbTextPaint.fontMetrics.let { it.bottom - it.top }
                 itemRectCache.add(RectF(left, top, left + itemWidth, top + itemHeight))
                 coverRectCache.add(RectF(left, top, left + coverWidth, top + coverHeight))
-                rtRectCache.add(RectF(rtRight - rtSize, rtTop, rtRight, rtTop + rtSize))
-                // 先预留整个width长度
-                rbRectCache.add(RectF(left, rbTop, left + itemWidth, top + coverHeight))
+                // 先计算出bottomRect,
+                bottomRectCache.add(
+                    RectF(
+                        left,
+                        top + coverHeight - bottomHeight,
+                        left + itemWidth,
+                        top + coverHeight
+                    )
+                )
+                // 除去bottom后的居中
+                val iconLeft = left + (itemWidth - iconSize) / 2
+                val iconTop = top + (coverHeight - bottomHeight - iconSize) / 2
+                iconRectCache.add(RectF(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize))
+                val avatarTop = top + (coverHeight - bottomHeight + avatarVerticalMargin)
+                val avatarLeft = left + avatarMarginStart
+                avatarRectCache.add(
+                    RectF(
+                        avatarLeft,
+                        avatarTop,
+                        avatarLeft + avatarSize,
+                        avatarTop + avatarSize
+                    )
+                )
             }
         }
     }
@@ -886,11 +910,13 @@ class FlexibleGridView @JvmOverloads constructor(
          * */
         fun getCoverBitmap(position: Int, expectWidth: Float, expectHeight: Float): Bitmap?
 
+        fun getIconBitmap(position: Int): Bitmap?
+
+        fun getAvatarBitmap(position: Int): Bitmap?
+
         fun getTitleText(position: Int): String
 
-        fun getProgressDescriptions(position: Int): String
-
-        fun getRtConfig(position: Int): FlexibleRtConfig
+        fun getSubTitleText(position: Int): String?
     }
 
     /**

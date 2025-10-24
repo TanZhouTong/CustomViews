@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="flexible_grid_view_default_rb_text_size">12sp</dimen>
-    <dimen name="flexible_grid_view_default_title_text_size">12sp</dimen>
+    <dimen name="flexible_grid_view_default_title_text_size">13.5sp</dimen>
     <dimen name="flexible_grid_view_default_corner_size">4dp</dimen>
-
     <dimen name="flexible_grid_view_default_item_width">150dp</dimen>
     <dimen name="flexible_grid_view_default_item_height">200dp</dimen>
-
     <dimen name="flexible_grid_view_default_rt_size">22dp</dimen>
+
+    <!--userGridView部分-->
+    <dimen name="user_grid_view_default_border_width">1dp</dimen>
+    <dimen name="user_grid_view_default_title_text_size">13.5sp</dimen>
+    <dimen name="user_grid_view_default_corner_size">4dp</dimen>
+    <dimen name="user_grid_view_default_item_width">150dp</dimen>
+    <dimen name="user_grid_view_default_item_height">200dp</dimen>
+    <dimen name="user_grid_view_default_avatar_size">22dp</dimen>
+    <dimen name="user_grid_view_default_avatar_margin_start">10dp</dimen>
+    <dimen name="user_grid_view_default_avatar_vertical_margin">5dp</dimen>
+    <dimen name="user_grid_view_default_sub_title_text_size">12sp</dimen>
 
 </resources>
