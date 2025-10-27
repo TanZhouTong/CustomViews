@@ -53,7 +53,9 @@ class UserGridView @JvmOverloads constructor(
         }
 
         override fun onConfigurationChange(oldItemsInPage: Int) {
-            reloadUiWithConfigurationChange(oldItemsInPage, reSort = false)
+            post {
+                reloadUiWithConfigurationChange(oldItemsInPage, reSort = false)
+            }
         }
     }
 
@@ -113,7 +115,7 @@ class UserGridView @JvmOverloads constructor(
     private lateinit var canvasCache: Canvas    // 离屏canvas
     private lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
 
-    var scaleMode = ScaleMode.ObeyPosition
+    var scaleMode: ScaleMode = ScaleMode.ObeyPosition
 
     init {
         // 这里获取相关属性数据 attrs解析
@@ -175,6 +177,7 @@ class UserGridView @JvmOverloads constructor(
                     R.styleable.UserGridView_subTitleMarginStart,
                     context.resources.getDimension(R.dimen.user_grid_view_default_sub_title_text_size)
                 )
+            subTitleHint = getString(R.styleable.UserGridView_subTitleHint) ?: "_"
         }
 
         // paint
@@ -218,7 +221,10 @@ class UserGridView @JvmOverloads constructor(
             )
             return
         }
-        // 计算rect
+        // 计算rect--主要用于处理横竖屏切换时，width、height都变化，
+        // 原有尺寸需要变更，如果单纯调用 reloadUiWithConfigurationChange(),getWidth()方法还是旧数据
+        calculateItemProperty()
+        calculateRect()
     }
 
     // 绘制，需要考虑： 1.背景封面 2.右上角图标 3.文字 4.后续可能需要拓展的view部分
