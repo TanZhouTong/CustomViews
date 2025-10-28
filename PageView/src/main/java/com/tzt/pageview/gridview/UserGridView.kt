@@ -37,7 +37,7 @@ class UserGridView @JvmOverloads constructor(
 
     companion object {
         const val INVALID = -1
-        const val TAG = "FlexibleGridView"
+        const val TAG = "UserGridView"
     }
 
     /**
@@ -242,7 +242,16 @@ class UserGridView @JvmOverloads constructor(
             canvasCache = Canvas(createBitmap(width, height, Bitmap.Config.ARGB_8888).also {
                 cacheBitmap = it
             })
-            adapter?.getCurrentPageData(currentPage)?.forEachIndexed { index, item ->
+            adapter?.getCurrentPageData(currentPage)?.also {
+                Log.d(
+                    TAG,
+                    "onDraw() -> getCurrentPageData: ${it.size}; itemRectCacheSize: ${itemRectCache.size}"
+                )
+                if (it.size > itemRectCache.size) { // 小于是正常的，最后一页不足一页时存在
+                    Log.e(TAG, "dirty, need calculate the rect, skip this time[draw]...")
+                    return
+                }
+            }?.forEachIndexed { index, item ->
                 drawGridItem(index)
             }
             canvas.drawBitmap(cacheBitmap, 0f, 0f, bitmapPaint)
@@ -522,7 +531,7 @@ class UserGridView @JvmOverloads constructor(
     private fun getRealPosition(positionInPage: Int): Int {
         return adapter?.run {
             currentPage * itemsInPage + positionInPage
-        } ?: throw IllegalStateException("please ensure the FlexibleGridView adapter init [X]")
+        } ?: throw IllegalStateException("please ensure the UserGridView adapter init [X]")
     }
 
     private val pagingTouchSlop = 16f
