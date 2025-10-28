@@ -45,6 +45,8 @@ class FlexibleGridView @JvmOverloads constructor(
      * */
     private val mObserver: FlexibleGridDataSetObserver = object : FlexibleGridDataSetObserver() {
         override fun onChanged() {
+            // 这里也要进行一下indicator的检查/更新
+            notifyPageCountChanged(pageCount)
             reloadUiWithDataChange()
         }
 
@@ -66,6 +68,8 @@ class FlexibleGridView @JvmOverloads constructor(
     // attrs
     private var coverWidthAttr: Float = 0f
     private var coverHeightAttr: Float = 0f
+    private var borderWidth: Float = 0f
+    private var borderColor: Int = 0
     private var rtSizeAttr: Float = 0f
     private var itemMinXGap: Float = 0f
     private var itemMinYGap: Float = 0f
@@ -106,7 +110,7 @@ class FlexibleGridView @JvmOverloads constructor(
     private lateinit var canvasCache: Canvas    // 离屏canvas
     private lateinit var cacheBitmap: Bitmap    // 离屏canvas中bitmap
 
-    var scaleMode = ScaleMode.ObeyPosition
+    var scaleMode: ScaleMode = ScaleMode.ObeyPosition
 
     init {
         // 这里获取相关属性数据 attrs解析
@@ -124,6 +128,14 @@ class FlexibleGridView @JvmOverloads constructor(
             coverHeightAttr = getDimension(
                 R.styleable.FlexibleGridView_coverHeight,
                 context.resources.getDimension(R.dimen.flexible_grid_view_default_item_height)
+            )
+            borderWidth = getDimension(
+                R.styleable.FlexibleGridView_borderWidth,
+                context.resources.getDimension(R.dimen.flexible_grid_view_default_border_width)
+            )
+            borderColor = getColor(
+                R.styleable.FlexibleGridView_borderColor,
+                context.resources.getColor(R.color.black)
             )
             itemMinXGap = getDimension(R.styleable.FlexibleGridView_itemHorizontalMinGap, 0f)
             itemMinYGap = getDimension(R.styleable.FlexibleGridView_itemVerticalMinGap, 0f)
@@ -229,7 +241,16 @@ class FlexibleGridView @JvmOverloads constructor(
             canvasCache = Canvas(createBitmap(width, height, Bitmap.Config.ARGB_8888).also {
                 cacheBitmap = it
             })
-            adapter?.getCurrentPageData(currentPage)?.forEachIndexed { index, item ->
+            adapter?.getCurrentPageData(currentPage)?.also {
+                Log.d(
+                    TAG,
+                    "onDraw() -> getCurrentPageData: ${it.size}; itemRectCacheSize: ${itemRectCache.size}"
+                )
+                if (it.size > itemRectCache.size) { // 小于是正常的，最后一页不足一页时存在
+                    Log.e(TAG, "dirty, need calculate the rect, skip this time[draw]...")
+                    return
+                }
+            }?.forEachIndexed { index, item ->
                 drawGridItem(index)
             }
             canvas.drawBitmap(cacheBitmap, 0f, 0f, bitmapPaint)
@@ -268,7 +289,12 @@ class FlexibleGridView @JvmOverloads constructor(
 
             // 2. draw 外框
             canvasCache.drawRoundRect(
-                coverRect,
+                RectF(
+                    coverRect.left + borderWidth / 2,
+                    coverRect.top + borderWidth / 2,
+                    coverRect.right - borderWidth / 2,
+                    coverRect.bottom - borderWidth / 2
+                ),
                 itemCornerDimension,
                 itemCornerDimension,
                 strokePaint
@@ -673,10 +699,6 @@ class FlexibleGridView @JvmOverloads constructor(
 
             ScaleMode.ObeyPage -> {
                 oldPage
-            }
-
-            else -> {
-                throw UnsupportedOperationException("ScaleMode unknown type")
             }
         }
     }

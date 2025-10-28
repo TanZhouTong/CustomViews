@@ -45,6 +45,8 @@ class UserGridView @JvmOverloads constructor(
      * */
     private val mObserver: FlexibleGridDataSetObserver = object : FlexibleGridDataSetObserver() {
         override fun onChanged() {
+            // 这里也要进行一下indicator的检查/更新
+            notifyPageCountChanged(pageCount)
             reloadUiWithDataChange()
         }
 

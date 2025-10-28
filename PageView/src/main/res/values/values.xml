@@ -28,6 +28,8 @@
     <!--公共属性-->
     <attr name="coverWidth" format="dimension" />
     <attr name="coverHeight" format="dimension" />
+    <attr name="borderColor" format="color" />      <!--边界颜色-->
+    <attr name="borderWidth" format="dimension" />      <!--边界大小-->
     <attr name="itemHorizontalMinGap" format="dimension" /> <!--水平方向上最小的gap-->
     <attr name="itemVerticalMinGap" format="dimension" />   <!--垂直方向上最小的gap-->
     <attr name="circle" format="boolean" /> <!--翻页循环-->
@@ -50,6 +52,8 @@
         <attr name="corner" /> <!--背景圆角半径-->
         <attr name="titleTextSize" /> <!--标题部分textSize-->
         <attr name="titleTextAlign" /> <!--标题部分text对齐方式-->
+        <attr name="borderColor" />      <!--边界颜色-->
+        <attr name="borderWidth" />      <!--边界大小-->
         <!--独立部分-->
         <attr name="rtSize" format="dimension" /> <!--右上部分元素的大小-->
         <attr name="rtMarginTop" format="dimension" /> <!--右上部分元素对上边界的margin-->
@@ -64,6 +68,8 @@
     <declare-styleable name="UserGridView" parent="">
         <attr name="coverWidth" />
         <attr name="coverHeight" />
+        <attr name="borderColor" />      <!--边界颜色-->
+        <attr name="borderWidth" />      <!--边界大小-->
         <attr name="itemHorizontalMinGap" /> <!--水平方向上最小的gap-->
         <attr name="itemVerticalMinGap" />   <!--垂直方向上最小的gap-->
         <attr name="circle" /> <!--翻页循环-->
@@ -71,8 +77,6 @@
         <attr name="titleTextSize" /> <!--标题部分textSize-->
         <attr name="titleTextAlign" /> <!--标题部分text对齐方式-->
         <!--独立部分-->
-        <attr name="borderColor" format="color" />      <!--边界颜色-->
-        <attr name="borderWidth" format="dimension" />      <!--边界大小-->
         <attr name="iconSizeWeight" format="float" />     <!--中间图标部分的size对于itemWidth的占比-->
         <attr name="avatarSize" format="dimension" />   <!--登录头像部分size-->
         <attr name="avatarMarginStart" format="dimension" />    <!--头像icon左边距-->
