@@ -14,7 +14,9 @@
             <option value="$PROJECT_DIR$/CustomToolbar" />
             <option value="$PROJECT_DIR$/GlobalViewUtils" />
             <option value="$PROJECT_DIR$/PageView" />
+            <option value="$PROJECT_DIR$/alarmmanager" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/floatview" />
           </set>
         </option>
       </GradleProjectSettings>

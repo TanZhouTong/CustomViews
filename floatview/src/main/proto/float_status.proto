@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_package = "com.tzt.floatview.proto";
+option java_multiple_files = true;
+
+message FloatStatus {
+  bool show = 1;
+  Status status = 2;
+}
+
+enum Status {
+  FOLD = 0;
+  EXPAND = 1;
+}
