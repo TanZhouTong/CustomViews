@@ -39,7 +39,7 @@ private const val TAG = "FloatStatusSerializer"
  * dataStore的序列化工厂实现
  * */
 val Context.floatStatusDataStore by dataStore(
-    fileName = "float_status.db",
+    fileName = "float_view_status.db",
     serializerFactory = {
         Log.d(TAG, "serializerFactory#$it")
         FloatStatusSerializer(applicationContext = it)
@@ -66,7 +66,7 @@ class FloatStatusSerializer(private val applicationContext: Context) : Serialize
 
 fun Context.initDefaultStatus(): FloatStatus {
     return floatStatus {
-        show = false
+        show = true
         status = Status.FOLD
     }
 }

@@ -45,6 +45,7 @@ dependencies {
     implementation(project(path = ":CustomToolbar"))
     implementation(project(path = ":CustomPopupWindow"))
     implementation(project(path = ":PageView"))
+    implementation(project(path = ":floatview"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
