@@ -40,6 +40,7 @@ class FloatAssistantInitializer : Initializer<FloatAssistantInitializer> {
     }
 
     private lateinit var applicationContext: Context
+    private lateinit var view: View
 
     private val floatStatusFlow: Flow<FloatStatus> by lazy { applicationContext.floatStatusDataStore.data }
 
@@ -88,13 +89,17 @@ class FloatAssistantInitializer : Initializer<FloatAssistantInitializer> {
         }
         Log.w(TAG, "collectShowStatusUi()...")
         isShowStateFlow.collect {
-            if (it) {
-                // 弹窗添加view
-                withContext(Dispatchers.Main) {
-                    applicationContext.buildFloatView(R.layout.layout_float_view)
+            withContext(Dispatchers.Main) {
+                if (it) {
+                    // 弹窗添加view
+                    Log.d(TAG, "isShowStateFlow -> $it")
+                    view = applicationContext.buildFloatView(R.layout.layout_float_view)
+                } else {
+                    // 隐藏view
+                    if (this@FloatAssistantInitializer::view.isInitialized && view.isAttachedToWindow) {
+                        applicationContext.releaseFloatView(view)
+                    }
                 }
-            } else {
-                // 隐藏view
             }
         }
     }
@@ -160,4 +165,9 @@ private fun Context.buildFloatView(resId: Int): View {
         }
     })
     return view
+}
+
+private fun Context.releaseFloatView(view: View) {
+    val windowManager = applicationContext.getSystemService(WINDOW_SERVICE) as WindowManager
+    windowManager.removeView(view)
 }
