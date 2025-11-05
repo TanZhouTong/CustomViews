@@ -14,14 +14,18 @@ import android.view.MotionEvent.ACTION_MOVE
 import android.view.MotionEvent.ACTION_UP
 import android.view.View
 import android.view.WindowManager
+import androidx.datastore.preferences.core.edit
 import androidx.startup.Initializer
+import com.tzt.floatview.EXAMPLE_COUNTER
 import com.tzt.floatview.R
 import com.tzt.floatview.floatStatusDataStore
+import com.tzt.floatview.preferenceDs
 import com.tzt.floatview.proto.FloatStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -106,7 +110,25 @@ class FloatAssistantInitializer : Initializer<FloatAssistantInitializer> {
 }
 
 private fun Context.buildFloatView(resId: Int): View {
-    val view = LayoutInflater.from(this).inflate(resId, null)
+    val view = LayoutInflater.from(this).inflate(resId, null).apply {
+        isLongClickable = true
+        isClickable = true
+        setOnClickListener {
+            MainScope().launch(Dispatchers.IO) {
+                this@buildFloatView.preferenceDs.edit { datastore ->
+                    val old = datastore[EXAMPLE_COUNTER] ?: 0
+                    datastore[EXAMPLE_COUNTER] = old + 1
+                    Log.w("OnClick", "set value -> ${datastore[EXAMPLE_COUNTER]}")
+                }
+                MainScope().launch(Dispatchers.IO) {
+                    val value = this@buildFloatView.preferenceDs.data.map { it ->
+                        it[EXAMPLE_COUNTER] ?: 0
+                    }.first()
+                    Log.w("OnClick", "get value -> $value")
+                }
+            }
+        }
+    }
     // 设置悬浮窗参数
     val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
