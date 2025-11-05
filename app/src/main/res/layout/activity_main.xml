@@ -6,15 +6,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
     <include
         android:id="@+id/toolbar"
         layout="@layout/custom_toolbar_01" />
 
     <Button
         android:id="@+id/bt_to_grid"
-        android:text="pageView(Grid)"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="pageView(Grid)"
         app:layout_constraintBottom_toTopOf="@id/bt_to_linear"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,14 +23,23 @@
 
     <Button
         android:id="@+id/bt_to_linear"
-        android:text="pageView(Linear)"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="pageView(Linear)"
+        app:layout_constraintBottom_toTopOf="@id/bt_to_alarm"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/bt_to_grid" />
 
+    <Button
+        android:id="@+id/bt_to_alarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Alarm Task"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/bt_to_linear" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

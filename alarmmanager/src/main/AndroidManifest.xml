@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.SET_TIME" />
+
+    <!--这是一种特殊的访问权限，可以由系统或用户撤销。它应该只用于启用需要准确警报的面向用户的功能。有关更多详细信息，请浏览相关的开发人员文档。
+
+        应用程序需要针对 API Build.VERSION_CODES.S(31) 或更高级别才能请求此权限。
+
+        请注意，针对较低 API 级别的应用程序不需要此权限即可使用准确的报警 API。
+
+        持有此权限且目标为 API Build.VERSION_CODES.TIRAMISU(33) 及以下的应用程序始终保留在 WORKING_SET 或较低的备用存储桶中。
+
+        如果您的应用程序依赖于核心功能的准确警报，则可以在针对 API Build.VERSION_CODES.TIRAMISU(33) 时改为请求 USE_EXACT_ALARM(33)。
+
+        所有对次要功能使用准确警报的应用程序 (这些功能仍应由用户面对) 应继续使用此权限。-->
+<!--    <uses-permission android:name="android.permission.SET_TIME" />-->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <application>
+        <activity
+            android:name=".AlarmActivity"
+            android:exported="true" />
+    </application>
+
 </manifest>

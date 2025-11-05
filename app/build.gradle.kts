@@ -46,6 +46,7 @@ dependencies {
     implementation(project(path = ":CustomPopupWindow"))
     implementation(project(path = ":PageView"))
     implementation(project(path = ":floatview"))
+    implementation(project(path = ":alarmmanager"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -14,6 +14,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.tzt.alarmmanager.AlarmActivity
 import com.tzt.custompopupwindow.CustomPopupWindow
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     lateinit var translateButton: TextView
     lateinit var toGrid: Button
     lateinit var toLinear: Button
+    lateinit var toAlarm: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +62,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         translateButton = findViewById(com.tzt.customtoolbar.R.id.translate_bt)
         toGrid = findViewById(R.id.bt_to_grid)
         toLinear = findViewById(R.id.bt_to_linear)
+        toAlarm = findViewById(R.id.bt_to_alarm)
     }
 
     private fun setClickListener() {
@@ -71,6 +74,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         translateButton.setOnClickListener(this)
         toGrid.setOnClickListener(this)
         toLinear.setOnClickListener(this)
+        toAlarm.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
@@ -81,6 +85,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             com.tzt.customtoolbar.R.id.translate_bt -> doTranslate()
             R.id.bt_to_grid -> toGrid(0)
             R.id.bt_to_linear -> toGrid(1)
+            R.id.bt_to_alarm -> toAlarm()
         }
     }
 
@@ -122,6 +127,11 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     private fun toGrid(type: Int) {
         val intent = Intent(this, PageViewActivity::class.java)
         intent.putExtra("type", type)
+        startActivity(intent)
+    }
+
+    private fun toAlarm() {
+        val intent = Intent(this, AlarmActivity::class.java)
         startActivity(intent)
     }
 
