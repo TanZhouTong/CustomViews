@@ -37,6 +37,10 @@ private const val TAG = "FloatStatusSerializer"
 
 /**
  * dataStore的序列化工厂实现
+ * dataStore的使用：
+ * 1.使用proto3定义实体数据T
+ * 2.实现Serializer<T>接口
+ * 3.将Serializer<T>接口实例传给datastore委托(这里使用的是自定义的单例dataStore实例工厂)
  * */
 val Context.floatStatusDataStore by dataStore(
     fileName = "float_view_status.db",
