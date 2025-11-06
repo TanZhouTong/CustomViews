@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.tzt.alarmmanager.AlarmActivity
 import com.tzt.custompopupwindow.CustomPopupWindow
+import com.tzt.room.RoomActivity
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     lateinit var toGrid: Button
     lateinit var toLinear: Button
     lateinit var toAlarm: Button
+    lateinit var toRoom: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +65,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         toGrid = findViewById(R.id.bt_to_grid)
         toLinear = findViewById(R.id.bt_to_linear)
         toAlarm = findViewById(R.id.bt_to_alarm)
+        toRoom = findViewById(R.id.bt_to_room)
     }
 
     private fun setClickListener() {
@@ -75,6 +78,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         toGrid.setOnClickListener(this)
         toLinear.setOnClickListener(this)
         toAlarm.setOnClickListener(this)
+        toRoom.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
@@ -86,6 +90,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             R.id.bt_to_grid -> toGrid(0)
             R.id.bt_to_linear -> toGrid(1)
             R.id.bt_to_alarm -> toAlarm()
+            R.id.bt_to_room -> toRoom()
         }
     }
 
@@ -132,6 +137,11 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     private fun toAlarm() {
         val intent = Intent(this, AlarmActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun toRoom() {
+        val intent = Intent(this, RoomActivity::class.java)
         startActivity(intent)
     }
 

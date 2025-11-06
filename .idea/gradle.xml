@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/alarmmanager" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/floatview" />
+            <option value="$PROJECT_DIR$/room" />
           </set>
         </option>
       </GradleProjectSettings>
