@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Context.WINDOW_SERVICE
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
@@ -14,6 +15,8 @@ import android.view.MotionEvent.ACTION_MOVE
 import android.view.MotionEvent.ACTION_UP
 import android.view.View
 import android.view.WindowManager
+import androidx.annotation.RequiresApi
+import androidx.core.view.doOnLayout
 import androidx.datastore.preferences.core.edit
 import androidx.startup.Initializer
 import com.tzt.floatview.EXAMPLE_COUNTER
@@ -126,6 +129,12 @@ private fun Context.buildFloatView(resId: Int): View {
                     }.first()
                     Log.w("OnClick", "get value -> $value")
                 }
+            }
+        }
+        // 贴边时，系统手势冲突处理
+        doOnLayout {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                systemGestureExclusionRects = listOf(Rect(0, 0, width, height))
             }
         }
     }
