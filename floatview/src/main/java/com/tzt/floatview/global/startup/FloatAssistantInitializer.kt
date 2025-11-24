@@ -132,6 +132,7 @@ private fun Context.buildFloatView(resId: Int): View {
             }
         }
         // 贴边时，系统手势冲突处理
+        // 每次移动后位置改变时都需要重设exclusion rect
         doOnLayout {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 systemGestureExclusionRects = listOf(Rect(0, 0, width, height))
