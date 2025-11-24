@@ -20,8 +20,11 @@ import com.tzt.room.RoomActivity
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 class MainActivity : AppCompatActivity(), OnClickListener {
     lateinit var toolbar: Toolbar
@@ -52,7 +55,9 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         initView()
         setClickListener()
 
-        test()
+        lifecycleScope.launch {
+            test()
+        }
     }
 
     private fun initView() {
@@ -154,16 +159,43 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     }
 
     private val coroutineContext = Dispatchers.IO.limitedParallelism(2) + CoroutineName("Test")
-    private fun test() {
-        CoroutineScope(coroutineContext).launch {
+    private val coroutineContext2 = Dispatchers.IO.limitedParallelism(1) + CoroutineName("Test1")
+    private suspend fun test() {
+        val async1 = CoroutineScope(coroutineContext).async {
             for (i in 0 until 100) {
                 Log.d(TAG, "TEST AAAA : $i")
             }
         }
 
-        CoroutineScope(coroutineContext).launch {
+        val async2 = CoroutineScope(coroutineContext).async {
             for (i in 0 until 100) {
                 Log.d(TAG, "TEST BBBB : $i")
+            }
+        }
+//        async1.await()
+//        async2.await()
+        awaitAll(async1, async2)
+        // 如果不需要返回值，
+        // 1.将async -> launch, async1,async2 -> job1,job2
+        // 2.将awaitAll -> joinAll
+
+
+        CoroutineScope(coroutineContext2).launch {
+            launch {
+                for (i in 0 until 1000) {
+                    Log.d(TAG, "TEST ..............................AAAA[$i]...............")
+                }
+            }
+
+            launch {
+                for (i in 0 until 1000) {
+                    Log.d(TAG, "TEST ..............................BBBB[$i]...............")
+                }
+            }
+
+            yield()
+            for (i in 0 until 1000) {
+                Log.d(TAG, "TEST ..............................cccc[$i]...............")
             }
         }
     }

@@ -14,10 +14,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.tzt.room.model.Playlist
 import com.tzt.room.model.PlaylistSongCrossRef
 import com.tzt.room.model.Song
-import com.tzt.room.model.pojo.PlaylistWithSongs
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.math.log
 
 class RoomActivity : AppCompatActivity(), OnClickListener {
     companion object {
@@ -225,5 +222,18 @@ class RoomActivity : AppCompatActivity(), OnClickListener {
         }
     }
 
+    //Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of function types.
+    private inline fun testInline(noinline block: (a: Int) -> Int) {
+        Log.d(TAG, "testInline()...")
+        block(1)
+        testA(block)
+        workScope.launch {
+            block(1)
+        }
+    }
+
+    private fun testA(a: (Int) -> Int) {
+
+    }
 
 }
