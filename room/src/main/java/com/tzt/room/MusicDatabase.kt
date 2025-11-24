@@ -19,8 +19,8 @@ import kotlin.reflect.KProperty
  */
 @Database(
     entities = [Song::class, Playlist::class, PlaylistSongCrossRef::class],
-    version = 1,
-    exportSchema = false
+    version = 2,
+    exportSchema = false,
 )
 abstract class MusicDatabase : RoomDatabase() {
     abstract fun musicDao(): MusicDao
@@ -37,9 +37,10 @@ abstract class MusicDatabase : RoomDatabase() {
                     context,
                     MusicDatabase::class.java,
                     NAME
-                ).build().also {
-                    INSTANCE = it
-                }
+                ).addMigrations(MIGRATION_1_2)
+                    .build().also {
+                        INSTANCE = it
+                    }
             }
         }
     }

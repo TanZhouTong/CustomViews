@@ -23,8 +23,8 @@ data class PlaylistWithSongs(
         associateBy = Junction(
             value = PlaylistSongCrossRef::class,
             // 当连接表中的字段和实体中的key字段column命名不一致时(一致时可省略)，需显示指定,如下：
-            parentColumn = "playlistId", // 1. 在连接表中，用 'playlistId' 列去匹配父实体 (Playlist) 的 'id' 列
-            entityColumn = "songId" // 2.在连接表中，用 'songId' 列去匹配子实体 (Song) 的 'id' 列
+            parentColumn = "playlistId", // 1. 在连接表(PlaylistSongCrossRef)中，用 'playlistId' 列去匹配父实体 (Playlist) 的 'id' 列
+            entityColumn = "songId" // 2.在连接表(PlaylistSongCrossRef)中，用 'songId' 列去匹配子实体 (Song) 的 'id' 列
         )
     ) val songs: List<Song>,
 )
