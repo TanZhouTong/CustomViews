@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 
@@ -171,10 +172,11 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             for (i in 0 until 100) {
                 Log.d(TAG, "TEST BBBB : $i")
             }
+            "asd"
         }
 //        async1.await()
 //        async2.await()
-        awaitAll(async1, async2)
+        val (_, resultB) = awaitAll(async1, async2)
         // 如果不需要返回值，
         // 1.将async -> launch, async1,async2 -> job1,job2
         // 2.将awaitAll -> joinAll

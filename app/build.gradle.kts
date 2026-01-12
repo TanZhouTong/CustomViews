@@ -51,6 +51,7 @@ dependencies {
     implementation(project(path = ":floatview"))
     implementation(project(path = ":alarmmanager"))
     implementation(project(path = ":room"))
+    implementation(project(path = ":lasso"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
