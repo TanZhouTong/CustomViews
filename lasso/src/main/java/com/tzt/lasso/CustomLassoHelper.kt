@@ -2,6 +2,7 @@ package com.tzt.lasso
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Context.INPUT_SERVICE
 import android.content.Context.WINDOW_SERVICE
 import android.graphics.Canvas
 import android.graphics.Color
@@ -11,9 +12,12 @@ import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.PorterDuff
 import android.graphics.RectF
+import android.hardware.input.InputManager
 import android.os.Build
+import android.os.Looper
 import android.util.AttributeSet
 import android.util.Log
+import android.view.InputEvent
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -76,6 +80,7 @@ class CustomLassoHelper(private val context: Context) {
         initSurfaceView()
         // 设置悬浮窗参数
         manager.addView(view, generateParam(false))
+        view.post { setupInputMonitor(view.rootView) }
     }
 
     private fun initSurfaceView() {
@@ -85,11 +90,10 @@ class CustomLassoHelper(private val context: Context) {
         surfaceView.holder.setFormat(PixelFormat.TRANSPARENT)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun drawToSurface(path: Path) {
         mainScope.launch(Dispatchers.Default) {
             runCatching {
-                surfaceView.holder.lockHardwareCanvas().apply {
+                surfaceView.holder.lockCanvas().apply {
                     drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
                     drawPath(path, realtimePen.first)
                     drawPath(path, realtimePen.second)
@@ -103,12 +107,11 @@ class CustomLassoHelper(private val context: Context) {
 
     inner class SurfaceViewListener : SurfaceHolder.Callback, View.OnTouchListener {
         var tempPath: Path? = null
-        @RequiresApi(Build.VERSION_CODES.O)
         override fun surfaceCreated(p0: SurfaceHolder) {
             // 开始绘制
             mainScope.launch(Dispatchers.IO) {
                 runCatching {
-                    surfaceView.holder.lockHardwareCanvas().apply {
+                    surfaceView.holder.lockCanvas().apply {
                         drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
                     }
                 }.getOrNull().let {
@@ -182,10 +185,10 @@ class CustomLassoHelper(private val context: Context) {
                 path.lineTo(x, y)
             }
             // 关键：实时同步给 SurfaceView 绘制
-            drawToSurface(Path(path))
+            drawToSurface(path)
         }
         // 同步给 lassoView（用于 UP 后的静态显示）
-        if (actionMasked == MotionEvent.ACTION_CANCEL || actionMasked == MotionEvent.ACTION_UP){
+        if (actionMasked == MotionEvent.ACTION_CANCEL || actionMasked == MotionEvent.ACTION_UP) {
             lassoView.path = path
         }
     }
@@ -255,13 +258,85 @@ class CustomLassoHelper(private val context: Context) {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             type,
-            if(focusable) {
+            if (focusable) {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
             } else {
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE/* or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE*/
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
             },
             PixelFormat.RGBA_8888
         )
+    }
+
+    // 在 CustomLassoHelper 内部
+    private var reflectionHelper: ReflectionInputHelper? = null
+
+    private fun setupInputMonitor(view: View) {
+        val dId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            view.display.displayId
+        } else {
+            0
+        }
+
+        reflectionHelper = ReflectionInputHelper(context)
+        reflectionHelper?.setup(
+            dId,
+            onEvent = { event ->
+                handleGlobalMotionEvent(event)
+            },
+            onFinish = { receiver, event, handled ->
+                // 反射调用 finishInputEvent(event, handled)
+                try {
+                    val method = receiver::class.java.superclass.getDeclaredMethod(
+                        "finishInputEvent", InputEvent::class.java, Boolean::class.java
+                    )
+                    // 这里需要注意，如果是直接继承，receiver 此时就是 InputEventReceiver
+                    method.invoke(receiver, event, handled)
+                } catch (e: Exception) {
+                    // 如果上面报错，直接强制转型（因为编译时其实能找到这个类，只是报错）
+                    (receiver as? android.view.InputEventReceiver)?.finishInputEvent(event, handled)
+                }
+            }
+        )
+    }
+
+    var tempPath: Path? = null
+    private fun handleGlobalMotionEvent(event: MotionEvent) {
+        // ... 你的判断逻辑 ...
+        if (event.shouldIntercept()) {
+            reflectionHelper?.pilfer() // 执行抢夺
+            switchToLassoMode(true)    // 修改 WindowManager Flag
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    lassoView.path = null
+                    val path = tempPath ?: Path().also { tempPath = it }
+                    event.drawPath(path)
+                    true
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val path = tempPath ?: Path().also { tempPath = it }
+                    event.drawPath(path)
+                    true
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    val path = tempPath ?: Path().also { tempPath = it }
+                    event.drawPath(path)
+                    tempPath?.close()
+                    tempPath = null
+                    true
+                }
+
+                else -> false
+            }
+        } else {
+            switchToLassoMode(false)
+        }
+    }
+
+    private fun MotionEvent.shouldIntercept(): Boolean {
+        val toolType = getToolType(actionIndex)
+        return toolType == MotionEvent.TOOL_TYPE_STYLUS || toolType == MotionEvent.TOOL_TYPE_MOUSE
     }
 
 }
