@@ -324,6 +324,7 @@ class CustomLassoHelper(private val context: Context) {
                     event.drawPath(path)
                     tempPath?.close()
                     tempPath = null
+                    switchToLassoMode(false)
                     true
                 }
 
