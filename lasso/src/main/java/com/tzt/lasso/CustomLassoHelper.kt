@@ -25,10 +25,14 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.compareTo
+import kotlin.math.abs
 import kotlin.text.compareTo
 
 
@@ -43,6 +47,7 @@ class CustomLassoHelper(private val context: Context) {
     }
 
     private val mainScope by lazy { MainScope() }
+    private val renderScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
 
     private val view by lazy {
         FrameLayout(context).apply {
@@ -91,14 +96,14 @@ class CustomLassoHelper(private val context: Context) {
     }
 
     private fun drawToSurface(path: Path) {
-        mainScope.launch(Dispatchers.Default) {
+        renderScope.launch {
             runCatching {
                 surfaceView.holder.lockCanvas().apply {
                     drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
                     drawPath(path, realtimePen.first)
                     drawPath(path, realtimePen.second)
                 }
-            }.getOrNull().let {
+            }.getOrNull()?.let {
                 surfaceView.holder.unlockCanvasAndPost(it)
             }
         }
@@ -171,6 +176,10 @@ class CustomLassoHelper(private val context: Context) {
         }
     }
 
+    private var lastX = 0f
+    private var lastY = 0f
+    private val touchSlop = 2f // 只有移动超过2像素才重绘
+
     private fun MotionEvent.drawPath(path: Path) {
         if (actionMasked == MotionEvent.ACTION_DOWN) {
             path.moveTo(x, y)
@@ -179,13 +188,22 @@ class CustomLassoHelper(private val context: Context) {
                 for (i in 0 until historySize) {
                     val x = getHistoricalX(0, i)
                     val y = getHistoricalY(0, i)
-                    path.lineTo(x, y)
+                    if (abs(x - lastX) > touchSlop || abs(y - lastY) > touchSlop) {
+                        lastX = x
+                        lastY = y
+                        path.lineTo(x, y)
+                        drawToSurface(path)
+                    }
                 }
             } else {
-                path.lineTo(x, y)
+                if (abs(x - lastX) > touchSlop || abs(y - lastY) > touchSlop) {
+                    lastX = x
+                    lastY = y
+                    path.lineTo(x, y)
+                    drawToSurface(path)
+                }
             }
             // 关键：实时同步给 SurfaceView 绘制
-            drawToSurface(path)
         }
         // 同步给 lassoView（用于 UP 后的静态显示）
         if (actionMasked == MotionEvent.ACTION_CANCEL || actionMasked == MotionEvent.ACTION_UP) {
