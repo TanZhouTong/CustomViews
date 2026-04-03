@@ -16,6 +16,8 @@ datastore = "1.1.7"
 protobuf = "0.9.4"
 protobuf-kotlin-lite = "4.30.2"
 room_version = "2.8.3"
+okdownload = "1.0.7"
+okhttp = "5.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,6 +35,18 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf-kotlin-lite" }
 androidx-room = { module = "androidx.room:room-ktx", version.ref = "room_version" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room_version" }
+
+# core
+okdownload-core = { group = "com.liulishuo.okdownload", name = "okdownload", version.ref = "okdownload" }
+# provide sqlite to store breakpoints
+okdownload-sqlite = { group = "com.liulishuo.okdownload", name = "sqlite", version.ref = "okdownload" }
+# provide interface to match filedownloader
+okdownload-filedownloader = { group = "com.liulishuo.okdownload", name = "filedownloader", version.ref = "okdownload" }
+# provide interface for kotlin extension
+okdownload-ktx = { group = "com.liulishuo.okdownload", name = "ktx", version.ref = "okdownload" }
+# provide okhttp to connect to backend
+# and then please import okhttp dependencies by yourself
+okhttp = {group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

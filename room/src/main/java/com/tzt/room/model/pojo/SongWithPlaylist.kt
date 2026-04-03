@@ -11,7 +11,7 @@ import com.tzt.room.model.Song
  * @Description
  * @Author tanzhoutong
  * @Date 2025/11/6 14:18
- * 同 @link SongWithPlaylist
+ * 同 @link [SongWithPlaylist]
  */
 data class SongWithPlaylist(
     @Embedded
