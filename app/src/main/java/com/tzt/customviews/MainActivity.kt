@@ -217,11 +217,13 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     private val alreadyShowedCache: MutableList<Long> = mutableListOf()
     private fun showGuide(view: View) {
+        Thread.dumpStack()
         val key = GuideViewHelper.showGuideView(this, view)
         alreadyShowedCache.add(key)
     }
 
     private fun hideGuideView(key: Long) {
+        Thread.dumpStack()
         GuideViewHelper.hideGuideView(this, key)
         alreadyShowedCache.remove(key)
     }

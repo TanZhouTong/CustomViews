@@ -35,11 +35,11 @@ object GuideViewHelper {
         /*val displayMetrics = context.resources.displayMetrics´´
         val windowRect = Rect(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels)*/
 
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        /*val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val displayMetrics = DisplayMetrics()
         wm.defaultDisplay.getRealMetrics(displayMetrics)
         val windowRect = Rect(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels)
-        Log.i(TAG, "windowRect: $windowRect")
+        Log.i(TAG, "windowRect: $windowRect")*/
 
         // 2.获取这个view的rect(相对的window)
         val location = IntArray(2)
@@ -52,13 +52,17 @@ object GuideViewHelper {
         }
         Log.i(TAG, "locationRect: $locationRect")
         // show
-        return showGuideView(context, windowRect, locationRect)
+        return showGuideView(context, windowRectOwner, locationRect)
     }
 
     fun hideGuideView(context: Context, key: Long) {
+        Log.d(TAG, "ready to remove: $key")
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         guideViewsCache[key]?.let {
-            it.get()?.also { wm.removeView(it) } ?: run { cacheClear() }
+            it.get()?.also {
+                wm.removeView(it)
+                Log.d(TAG, "success remove: $it")
+            } ?: run { cacheClear() }
         } ?: run {
             Log.d(TAG, "already removed")
         }
