@@ -18,6 +18,7 @@ import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.withSave
 import androidx.core.graphics.toColorInt
+import java.lang.reflect.Proxy
 import kotlin.compareTo
 
 /**
@@ -37,34 +38,80 @@ class GuideView(context: Context, attrSet: AttributeSet? = null, attrs: Int = 0)
         xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
 
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        viewTreeObserver.addOnComputeInternalInsetsListener(insetsListener)
+        attachInternalInsetsListener()
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        viewTreeObserver.removeOnComputeInternalInsetsListener(insetsListener)
+        detachInternalInsetsListener()
     }
 
     /**
-     * 在测试机器上可行，在市场机器上需要通过反射、代理处理
-     * */
-    private val insetsListener = ViewTreeObserver.OnComputeInternalInsetsListener { info ->
-        info.touchableRegion.setEmpty()
-        info.setTouchableInsets(ViewTreeObserver.InternalInsetsInfo.TOUCHABLE_INSETS_REGION)
+     * 使用反射和代理来处理隐藏的 OnComputeInternalInsetsListener API。
+     * 这样可以兼容不同厂商的 ROM，并避免在标准 SDK 下编译失败。
+     */
+    private var mInternalInsetsProxy: Any? = null
 
-        // 关键点：将除了镂空区域以外的部分设为可触摸区域
-        // 或者更简单：如果点击在镂空内，就不把镂空区域加入 Region
-        holoRectF?.let { rectF ->
-            val rect = Rect(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+    private fun attachInternalInsetsListener() {
+        try {
+            val vto = viewTreeObserver
+            val listenerClass = Class.forName("android.view.ViewTreeObserver\$OnComputeInternalInsetsListener")
+            val addMethod = vto.javaClass.getMethod("addOnComputeInternalInsetsListener", listenerClass)
 
-            // 创建一个全屏区域，然后减去镂空区域
-            val fullRegion = Region(0, 0, width, height)
-            val holeRegion = Region(rect)
-            fullRegion.op(holeRegion, Region.Op.DIFFERENCE)
+            mInternalInsetsProxy = Proxy.newProxyInstance(
+                listenerClass.classLoader,
+                arrayOf(listenerClass)
+            ) { _, method, args ->
+                if (method.name == "onComputeInternalInsets") {
+                    val info = args[0] ?: return@newProxyInstance null
 
-            info.touchableRegion.set(fullRegion)
+                    // 获取 setTouchableInsets 方法并调用 (3 代表 TOUCHABLE_INSETS_REGION)
+                    val setTouchableInsetsMethod = info.javaClass.getMethod("setTouchableInsets", Int::class.javaPrimitiveType)
+                    setTouchableInsetsMethod.invoke(info, 3)
+
+                    // 获取并操作 touchableRegion 字段
+                    val touchableRegionField = info.javaClass.getDeclaredField("touchableRegion")
+                    val touchableRegion = touchableRegionField.get(info) as Region
+
+                    holoRectF?.let { rectF ->
+                        val rect = Rect(
+                            rectF.left.toInt(),
+                            rectF.top.toInt(),
+                            rectF.right.toInt(),
+                            rectF.bottom.toInt()
+                        )
+                        // 计算“可触摸区域”：全屏减去镂空区域
+                        val fullRegion = Region(0, 0, width, height)
+                        val holeRegion = Region(rect)
+                        fullRegion.op(holeRegion, Region.Op.DIFFERENCE)
+                        touchableRegion.set(fullRegion)
+                    } ?: run {
+                        // 如果没有镂空，整个引导层拦截所有事件
+                        touchableRegion.set(0, 0, width, height)
+                    }
+                }
+                null
+            }
+            addMethod.invoke(vto, mInternalInsetsProxy)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun detachInternalInsetsListener() {
+        try {
+            mInternalInsetsProxy?.let { proxy ->
+                val vto = viewTreeObserver
+                val listenerClass = Class.forName("android.view.ViewTreeObserver\$OnComputeInternalInsetsListener")
+                val removeMethod = vto.javaClass.getMethod("removeOnComputeInternalInsetsListener", listenerClass)
+                removeMethod.invoke(vto, proxy)
+                mInternalInsetsProxy = null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
