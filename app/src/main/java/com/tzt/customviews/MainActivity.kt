@@ -16,14 +16,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.tzt.alarmmanager.AlarmActivity
 import com.tzt.custompopupwindow.CustomPopupWindow
+import com.tzt.guideview.GuideViewHelper
 import com.tzt.room.RoomActivity
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 
@@ -89,14 +88,23 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     override fun onClick(v: View?) {
         when (v!!.id) {
-            com.tzt.customtoolbar.R.id.navigation_back, com.tzt.customtoolbar.R.id.title_tv -> onBackPressed()
+            /*com.tzt.customtoolbar.R.id.navigation_back, com.tzt.customtoolbar.R.id.title_tv -> onBackPressed()
             com.tzt.customtoolbar.R.id.language_from, com.tzt.customtoolbar.R.id.language_to -> showPopupWindow(v)
             com.tzt.customtoolbar.R.id.language_replace -> swapLanguage()
             com.tzt.customtoolbar.R.id.translate_bt -> doTranslate()
             R.id.bt_to_grid -> toGrid(0)
             R.id.bt_to_linear -> toGrid(1)
             R.id.bt_to_alarm -> toAlarm()
-            R.id.bt_to_room -> toRoom()
+            R.id.bt_to_room -> toRoom()*/
+            com.tzt.customtoolbar.R.id.navigation_back, com.tzt.customtoolbar.R.id.title_tv -> onBackPressed()
+            com.tzt.customtoolbar.R.id.language_from, com.tzt.customtoolbar.R.id.language_to -> showGuide(v)
+            com.tzt.customtoolbar.R.id.language_replace -> showGuide(v)
+            com.tzt.customtoolbar.R.id.translate_bt -> showGuide(v)
+            R.id.bt_to_grid -> showGuide(v)
+            R.id.bt_to_linear -> showGuide(v)
+            R.id.bt_to_alarm -> showGuide(v)
+            R.id.bt_to_room -> showGuide(v)
+
         }
     }
 
@@ -162,7 +170,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     private val coroutineContext = Dispatchers.IO.limitedParallelism(2) + CoroutineName("Test")
     private val coroutineContext2 = Dispatchers.IO.limitedParallelism(1) + CoroutineName("Test1")
     private suspend fun test() {
-        val async1 = CoroutineScope(coroutineContext).async {
+        /*val async1 = CoroutineScope(coroutineContext).async {
             for (i in 0 until 100) {
                 Log.d(TAG, "TEST AAAA : $i")
             }
@@ -199,6 +207,28 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             for (i in 0 until 1000) {
                 Log.d(TAG, "TEST ..............................cccc[$i]...............")
             }
+        }*/
+    }
+
+    override fun onStop() {
+        super.onStop()
+        hideAllGuideView()
+    }
+
+    private val alreadyShowedCache: MutableList<Long> = mutableListOf()
+    private fun showGuide(view: View) {
+        val key = GuideViewHelper.showGuideView(this, view)
+        alreadyShowedCache.add(key)
+    }
+
+    private fun hideGuideView(key: Long) {
+        GuideViewHelper.hideGuideView(this, key)
+        alreadyShowedCache.remove(key)
+    }
+
+    private fun hideAllGuideView() {
+        alreadyShowedCache.forEach {
+            hideGuideView(it)
         }
     }
 }

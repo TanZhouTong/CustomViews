@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.INPUT_SERVICE
 import android.content.Context.WINDOW_SERVICE
+import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.DashPathEffect
@@ -13,8 +14,10 @@ import android.graphics.PixelFormat
 import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.hardware.input.InputManager
+import android.net.Uri
 import android.os.Build
 import android.os.Looper
+import android.provider.Settings
 import android.util.AttributeSet
 import android.util.Log
 import android.view.InputEvent
@@ -24,6 +27,7 @@ import android.view.SurfaceView
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -82,10 +86,20 @@ class CustomLassoHelper(private val context: Context) {
     // 3. listener
     fun showLassoView() {
         Log.d(TAG, "showLassoView")
-        initSurfaceView()
-        // 设置悬浮窗参数
-        manager.addView(view, generateParam(false))
-        view.post { setupInputMonitor(view.rootView) }
+        if (!Settings.canDrawOverlays(context)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + context.packageName)
+            )
+            // 这里当前还在contentProvider启动阶段，这里无效
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } else {
+            initSurfaceView()
+            // 设置悬浮窗参数
+            manager.addView(view, generateParam(false))
+            view.post { setupInputMonitor(view.rootView) }
+        }
     }
 
     private fun initSurfaceView() {
