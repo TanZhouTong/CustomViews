@@ -50,13 +50,14 @@ class GuideView(context: Context, attrSet: AttributeSet? = null, attrs: Int = 0)
 
     @RequiresApi(Build.VERSION_CODES.R)
     private fun getStatusBarHeightModern(): Int {
-        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        /*return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             // 获取窗口的 Insets
             rootWindowInsets?.getInsets(android.view.WindowInsets.Type.statusBars())?.top
                 ?: getStatusBarHeight()
         } else {
             getStatusBarHeight()
-        }
+        }*/
+        return 0
     }
 
     // 获取状态栏高度的工具方法
