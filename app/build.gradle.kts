@@ -54,6 +54,7 @@ dependencies {
     implementation(project(path = ":lasso"))
     implementation(project(path = ":aidl-bridge"))
     implementation(project(path = ":guideView"))
+    debugImplementation(libs.leakcanarry)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,10 +1,12 @@
 package com.tzt.customviews
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.View.OnClickListener
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -16,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.tzt.alarmmanager.AlarmActivity
 import com.tzt.custompopupwindow.CustomPopupWindow
+import com.tzt.guideview.GuideView
 import com.tzt.guideview.GuideViewHelper
 import com.tzt.room.RoomActivity
 import kotlinx.coroutines.CoroutineName
@@ -71,6 +74,10 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         toLinear = findViewById(R.id.bt_to_linear)
         toAlarm = findViewById(R.id.bt_to_alarm)
         toRoom = findViewById(R.id.bt_to_room)
+
+        navigationBack.post {
+            showGuide(navigationBack)
+        }
     }
 
     private fun setClickListener() {
@@ -88,22 +95,22 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     override fun onClick(v: View?) {
         when (v!!.id) {
-            /*com.tzt.customtoolbar.R.id.navigation_back, com.tzt.customtoolbar.R.id.title_tv -> onBackPressed()
+            com.tzt.customtoolbar.R.id.navigation_back, com.tzt.customtoolbar.R.id.title_tv -> onBackPressed()
             com.tzt.customtoolbar.R.id.language_from, com.tzt.customtoolbar.R.id.language_to -> showPopupWindow(v)
             com.tzt.customtoolbar.R.id.language_replace -> swapLanguage()
             com.tzt.customtoolbar.R.id.translate_bt -> doTranslate()
             R.id.bt_to_grid -> toGrid(0)
             R.id.bt_to_linear -> toGrid(1)
             R.id.bt_to_alarm -> toAlarm()
-            R.id.bt_to_room -> toRoom()*/
-            com.tzt.customtoolbar.R.id.navigation_back, com.tzt.customtoolbar.R.id.title_tv -> onBackPressed()
+            R.id.bt_to_room -> toRoom()
+            /*com.tzt.customtoolbar.R.id.navigation_back, com.tzt.customtoolbar.R.id.title_tv -> onBackPressed()
             com.tzt.customtoolbar.R.id.language_from, com.tzt.customtoolbar.R.id.language_to -> showGuide(v)
             com.tzt.customtoolbar.R.id.language_replace -> showGuide(v)
             com.tzt.customtoolbar.R.id.translate_bt -> showGuide(v)
             R.id.bt_to_grid -> showGuide(v)
             R.id.bt_to_linear -> showGuide(v)
             R.id.bt_to_alarm -> showGuide(v)
-            R.id.bt_to_room -> showGuide(v)
+            R.id.bt_to_room -> showGuide(v)*/
 
         }
     }
@@ -212,25 +219,23 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     override fun onStop() {
         super.onStop()
-        hideAllGuideView()
     }
 
-    private val alreadyShowedCache: MutableList<Long> = mutableListOf()
+    override fun onDestroy() {
+        hideGuideView(guideView)
+        super.onDestroy()
+    }
+
+    var guideView: GuideView? = null
     private fun showGuide(view: View) {
         Thread.dumpStack()
-        val key = GuideViewHelper.showGuideView(this, view)
-        alreadyShowedCache.add(key)
+        guideView = GuideViewHelper.showGuideView(this, view)
     }
 
-    private fun hideGuideView(key: Long) {
-        Thread.dumpStack()
-        GuideViewHelper.hideGuideView(this, key)
-        alreadyShowedCache.remove(key)
-    }
-
-    private fun hideAllGuideView() {
-        alreadyShowedCache.forEach {
-            hideGuideView(it)
+    private fun hideGuideView(guideView: GuideView?) {
+        guideView?.let {
+            val wm = this@MainActivity.getSystemService(WINDOW_SERVICE) as WindowManager
+            wm.removeView(it)
         }
     }
 }

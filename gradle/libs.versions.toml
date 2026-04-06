@@ -19,6 +19,7 @@ room_version = "2.8.3"
 okdownload = "1.0.7"
 okhttp = "5.3.0"
 coroutines = "1.9.0"
+leakcanarry_version = "2.14"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,6 +38,7 @@ protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", ve
 androidx-room = { module = "androidx.room:room-ktx", version.ref = "room_version" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room_version" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+leakcanarry = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanarry_version" }
 
 # core
 okdownload-core = { group = "com.liulishuo.okdownload", name = "okdownload", version.ref = "okdownload" }

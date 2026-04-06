@@ -23,10 +23,8 @@ import kotlin.text.compareTo
  */
 object GuideViewHelper {
     private const val TAG = "GuideViewHelper"
-    private val guideViewsCache: ArrayMap<Long, GuideReference> = ArrayMap()
-    private val weakReferenceQueue: ReferenceQueue<in GuideView> = ReferenceQueue()
 
-    fun showGuideView(context: Context, view: View): Long {
+    fun showGuideView(context: Context, view: View): GuideView {
         // 1.获取这个view的window范围
         val windowRectOwner = Rect()
         view.getWindowVisibleDisplayFrame(windowRectOwner)
@@ -45,8 +43,10 @@ object GuideViewHelper {
         val location = IntArray(2)
         view.getLocationInWindow(location)
         val locationRect = Rect().apply {
-            left = location[0] - windowRectOwner.left
-            top = location[1] - windowRectOwner.top
+//            left = location[0] - windowRectOwner.left
+//            top = location[1] - windowRectOwner.top
+            left = location[0]
+            top = location[1]
             right = left + view.width
             bottom = top + view.height
         }
@@ -55,21 +55,7 @@ object GuideViewHelper {
         return showGuideView(context, windowRectOwner, locationRect)
     }
 
-    fun hideGuideView(context: Context, key: Long) {
-        Log.d(TAG, "ready to remove: $key")
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        guideViewsCache[key]?.let {
-            it.get()?.also {
-                wm.removeView(it)
-                Log.d(TAG, "success remove: $it")
-            } ?: run { cacheClear() }
-        } ?: run {
-            Log.d(TAG, "already removed")
-        }
-    }
-
-    private fun showGuideView(context: Context, windowRect: Rect, locationRect: Rect): Long {
-        cacheClear()
+    private fun showGuideView(context: Context, windowRect: Rect, locationRect: Rect): GuideView {
 
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val view = GuideView(context).apply {
@@ -82,8 +68,8 @@ object GuideViewHelper {
                 WindowManager.LayoutParams.TYPE_APPLICATION,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                         WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                        WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN/* or
+                        WindowManager.LayoutParams.FLAG_FULLSCREEN*/,
                 PixelFormat.RGBA_8888
             ).apply {
                 gravity = Gravity.TOP or Gravity.LEFT
@@ -92,28 +78,12 @@ object GuideViewHelper {
 
                 // 4. 关键：解决刘海屏（Notch）导致的偏移
                 // 如果不设置这个，在有刘海的手机上，系统会自动把整个窗口压下刘海的高度
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//                    layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-//                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                }
             }
         )
-        val timestamp = System.currentTimeMillis()
-        guideViewsCache.put(timestamp, GuideReference(timestamp, view, weakReferenceQueue))
-        return timestamp
-    }
-
-    /**
-     * 清理cache中的数据，防止时间积累导致的内存泄漏
-     * */
-    private fun cacheClear() {
-        var reference: Reference<*>? = null
-        while (weakReferenceQueue.poll().also { reference = it } != null) {
-            // 需要使用GuideReference携带的key数据，才能精确移除
-            if (reference is GuideReference) {
-                guideViewsCache.remove(reference.key)
-                Log.i(TAG, "remove key: ${reference.key}")
-            }
-        }
+        return view
     }
 
 }

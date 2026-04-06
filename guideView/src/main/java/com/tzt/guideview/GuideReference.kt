@@ -2,6 +2,7 @@ package com.tzt.guideview
 
 import android.view.View
 import java.lang.ref.ReferenceQueue
+import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 
 /**
